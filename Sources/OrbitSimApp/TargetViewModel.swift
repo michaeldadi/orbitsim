@@ -15,6 +15,9 @@ final class TargetViewModel {
     var displayError: String?
     var isLoadingDisplays = false
     var latestCaptureURL: URL?
+    var contrastEnabled: Bool?
+    var contentSize: SimulatorContentSize?
+    var environmentError: String?
 
     private let registry = TargetRegistry()
 
@@ -50,6 +53,7 @@ final class TargetViewModel {
             }
             error = nil
             await refreshDisplays()
+            await refreshEnvironment()
         } catch {
             self.error = error.localizedDescription
         }
@@ -117,6 +121,43 @@ final class TargetViewModel {
         }
     }
 
+    func refreshEnvironment() async {
+        contrastEnabled = nil
+        contentSize = nil
+        environmentError = nil
+        guard let target = selectedTarget, target.kind == .simulator,
+              target.state == .booted else { return }
+        do {
+            async let contrast = registry.simulators.increaseContrast(target.id)
+            async let size = registry.simulators.contentSize(target.id)
+            let (foundContrast, foundSize) = try await (contrast, size)
+            guard selectedTargetID == target.id else { return }
+            contrastEnabled = foundContrast
+            contentSize = foundSize
+        } catch {
+            guard selectedTargetID == target.id else { return }
+            environmentError = error.localizedDescription
+        }
+    }
+
+    func setIncreaseContrast(_ enabled: Bool) async {
+        guard let target = selectedTarget, target.kind == .simulator,
+              target.state == .booted else { return }
+        let changed = await run("\(enabled ? "Enabled" : "Disabled") Increase Contrast") {
+            try await registry.simulators.setIncreaseContrast(target.id, enabled: enabled)
+        }
+        if changed { await refreshEnvironment() }
+    }
+
+    func setContentSize(_ size: SimulatorContentSize) async {
+        guard let target = selectedTarget, target.kind == .simulator,
+              target.state == .booted else { return }
+        let changed = await run("Set text size to \(size.label)") {
+            try await registry.simulators.setContentSize(target.id, size: size)
+        }
+        if changed { await refreshEnvironment() }
+    }
+
     func install(app: URL) async {
         guard let selectedTargetID else { return }
         await run("Installed \(app.lastPathComponent)") {
@@ -128,6 +169,30 @@ final class TargetViewModel {
         guard let selectedTargetID else { return }
         await run("Launched \(bundleID)") {
             try await registry.launch(selectedTargetID, bundleID: bundleID)
+        }
+    }
+
+    func terminate(bundleID: String, expectedTargetID: String) async {
+        guard selectedTargetID == expectedTargetID,
+              let target = selectedTarget, target.kind == .simulator,
+              target.state == .booted else {
+            error = "The selected Simulator changed. Select it again before terminating the app."
+            return
+        }
+        await run("Terminated \(bundleID) on \(target.name)") {
+            try await registry.simulators.terminate(target.id, bundleID: bundleID)
+        }
+    }
+
+    func uninstall(bundleID: String, expectedTargetID: String) async {
+        guard selectedTargetID == expectedTargetID,
+              let target = selectedTarget,
+              target.state == .booted || target.state == .connected else {
+            error = "The selected target changed. Select it again before uninstalling the app."
+            return
+        }
+        await run("Uninstalled \(bundleID) from \(target.name)") {
+            try await registry.uninstall(target.id, bundleID: bundleID)
         }
     }
 

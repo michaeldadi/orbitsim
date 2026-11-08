@@ -233,6 +233,26 @@ struct OrbitSimCommand {
                 throw OrbitSimError.unsupportedAction("Appearance control is available only for Simulators")
             }
             try await registry.simulators.setAppearance(id, dark: style == "dark")
+        case "contrast":
+            let id = try required("--target", in: arguments)
+            try await requireSimulator(id, registry: registry)
+            if let state = optional("--state", in: arguments) {
+                guard state == "enabled" || state == "disabled" else {
+                    throw OrbitSimError.invalidArgument("--state must be enabled or disabled")
+                }
+                try await registry.simulators.setIncreaseContrast(id, enabled: state == "enabled")
+            }
+            print(try await registry.simulators.increaseContrast(id) ? "enabled" : "disabled")
+        case "text-size":
+            let id = try required("--target", in: arguments)
+            try await requireSimulator(id, registry: registry)
+            if let value = optional("--size", in: arguments) {
+                guard let size = SimulatorContentSize(rawValue: value) else {
+                    throw OrbitSimError.invalidArgument("Unsupported --size; see orbitsim help")
+                }
+                try await registry.simulators.setContentSize(id, size: size)
+            }
+            print(try await registry.simulators.contentSize(id).rawValue)
         case "location":
             let id = try required("--target", in: arguments)
             let latitudeText = try required("--latitude", in: arguments)
@@ -321,6 +341,8 @@ struct OrbitSimCommand {
           orbitsim displays --target <simulator-id> [--json]
           orbitsim boot|shutdown --target <simulator-id>
           orbitsim appearance --target <simulator-id> --style dark|light
+          orbitsim contrast --target <simulator-id> [--state enabled|disabled]
+          orbitsim text-size --target <simulator-id> [--size extra-small|small|medium|large|extra-large|extra-extra-large|extra-extra-extra-large|accessibility-medium|accessibility-large|accessibility-extra-large|accessibility-extra-extra-large|accessibility-extra-extra-extra-large]
           orbitsim location --target <id> --latitude <n> --longitude <n>
           orbitsim clear-location --target <id>
           orbitsim status-bar --target <simulator-id> --time <value> [--battery <0-100>]

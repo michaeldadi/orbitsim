@@ -29,7 +29,7 @@ Baseline: RocketSim 16.8.0 installed on macOS 27.2; public documentation reviewe
 | F19 | Magnifier and color picker | S/P | capture sample / AppKit | Copy sampled value in supported code formats | incomplete |
 | F20 | Slow animations | S | Simulator control proof | Enable, disable, restore state on exit | incomplete |
 | F21 | Simulator boot/shutdown | S | `simctl` | Boot and shut down specific disposable target | incomplete (OrbitSim CLI changed Duo state through boot/shutdown, but its first-boot data migration failed) |
-| F22 | App install, launch, terminate, uninstall | S/P | `simctl`/`devicectl` | Lifecycle fixture app on both target types | incomplete (Simulator CLI terminate returned to Home; uninstall removed the app container; reinstall and relaunch restored OrbitFixture; native actions and physical device pending) |
+| F22 | App install, launch, terminate, uninstall | S/P | `simctl`/`devicectl` | Lifecycle fixture app on both target types | incomplete (Simulator CLI and native terminate/uninstall ran on OrbitFixture; native uninstall showed bundle ID and target before removal; `simctl` confirmed the app container was gone; CLI reinstall and relaunch restored it. Physical-device lifecycle pending) |
 | F23 | Recent builds and relaunch | S/P | DerivedData index, lifecycle adapter | Select right app from two Xcode projects | incomplete |
 | F24 | Deep and Universal Links | S/P | `simctl openurl`/`devicectl` | Open fixture link with chooser and fallback | incomplete (Simulator custom URL verified after Open prompt; Universal Link and physical device pending) |
 | F25 | Simulated push notification | S | `simctl push` | Deliver valid payload; reject invalid payload | incomplete (adapter and invalid-payload test) |
@@ -38,7 +38,7 @@ Baseline: RocketSim 16.8.0 installed on macOS 27.2; public documentation reviewe
 | F27 | Status bar time and battery | S | `simctl status_bar` | Set then clear time and battery | verified (CLI) |
 | F27b | Status bar network and carrier | S | `simctl status_bar` | Set then clear all supported fields | incomplete |
 | F28 | Light and dark appearance | S | `simctl ui` | Toggle then restore appearance | verified (CLI) |
-| F28b | Accessibility environment | S | platform controls | Toggle and restore text size, contrast, VoiceOver | incomplete |
+| F28b | Accessibility environment | S | `simctl ui` | Toggle and restore text size, contrast, VoiceOver | incomplete (CLI contrast and content-size changes read back and restored on iPhone 17 Pro; native app read both settings and restored contrast; native text-size picker and VoiceOver control pending) |
 | F29 | Privacy permissions | S | `simctl privacy` | Grant/revoke/reset each supported service on fixture | incomplete (subset adapter built) |
 | F30 | Pasteboard, keychain, user defaults | S | `simctl` and debug bridge | Read/change/restorable state for fixture app | incomplete |
 | F31 | Shake and memory warning | S | proven Simulator control path | Trigger fixture handlers without UI focus ambiguity | incomplete |

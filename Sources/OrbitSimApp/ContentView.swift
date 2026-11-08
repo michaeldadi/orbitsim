@@ -12,6 +12,8 @@ struct ContentView: View {
     @State private var longitudeText = ""
     @State private var statusTime = ""
     @State private var batteryText = ""
+    @State private var pendingUninstall: UninstallRequest?
+    @State private var selectedTextSize: SimulatorContentSize = .large
     @AppStorage("showPhysicalDevices") private var showPhysicalDevices = true
 
     var body: some View {
@@ -59,11 +61,33 @@ struct ContentView: View {
             }
         }
         .task { await model.refresh() }
-        .task(id: model.selectedTargetID) { await model.refreshDisplays() }
+        .task(id: model.selectedTargetID) {
+            await model.refreshDisplays()
+            await model.refreshEnvironment()
+            if let size = model.contentSize { selectedTextSize = size }
+        }
+        .onChange(of: model.contentSize) { _, size in
+            if let size { selectedTextSize = size }
+        }
+        .onChange(of: model.selectedTargetID) { _, _ in
+            bundleID = ""
+            deepLink = ""
+        }
         .onChange(of: showPhysicalDevices) { _, visible in
             if !visible, model.selectedTarget?.kind == .physical {
                 model.selectedTargetID = nil
             }
+        }
+        .alert("Uninstall app?", item: $pendingUninstall) { request in
+            Button("Uninstall", role: .destructive) {
+                Task {
+                    await model.uninstall(bundleID: request.bundleID,
+                                          expectedTargetID: request.targetID)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { request in
+            Text("Remove \(request.bundleID) and its app data from \(request.targetName)?")
         }
     }
 
@@ -134,6 +158,17 @@ struct ContentView: View {
                             .accessibilityLabel("App bundle identifier")
                         Button("Launch") { Task { await model.launch(bundleID: bundleID) } }
                             .disabled(bundleID.isEmpty || model.isBusy || !canAct)
+                        if target.kind == .simulator {
+                            Button("Terminate") { Task { await model.terminate(bundleID: bundleID,
+                                                                                  expectedTargetID: target.id) } }
+                                .disabled(bundleID.isEmpty || model.isBusy || !canAct)
+                        }
+                        Button("Uninstall", role: .destructive) {
+                            pendingUninstall = UninstallRequest(bundleID: bundleID,
+                                                                targetID: target.id,
+                                                                targetName: target.name)
+                        }
+                        .disabled(bundleID.isEmpty || model.isBusy || !canAct)
                         Button("Install App…") { selectApp() }
                             .disabled(model.isBusy || !canAct)
                     }
@@ -176,6 +211,46 @@ struct ContentView: View {
                             Spacer()
                         }
                         .disabled(model.isBusy || !canAct)
+
+                        Divider()
+                        HStack {
+                            Text("Accessibility")
+                                .font(.subheadline.weight(.semibold))
+                            if let enabled = model.contrastEnabled {
+                                Text("Contrast: \(enabled ? "Increased" : "Standard")")
+                                    .foregroundStyle(.secondary)
+                            }
+                            Button("Increase Contrast") {
+                                Task { await model.setIncreaseContrast(true) }
+                            }
+                            Button("Standard Contrast") {
+                                Task { await model.setIncreaseContrast(false) }
+                            }
+                            Spacer()
+                        }
+                        .disabled(model.isBusy || !canAct)
+                        HStack {
+                            Picker("Text Size", selection: $selectedTextSize) {
+                                ForEach(SimulatorContentSize.allCases) { size in
+                                    Text(size.label).tag(size)
+                                }
+                            }
+                            .frame(maxWidth: 340)
+                            Button("Apply Text Size") {
+                                Task { await model.setContentSize(selectedTextSize) }
+                            }
+                            .disabled(model.isBusy || !canAct)
+                            if let size = model.contentSize {
+                                Text("Current: \(size.label)")
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                        }
+                        if let environmentError = model.environmentError {
+                            Text(environmentError)
+                                .font(.caption)
+                                .foregroundStyle(.orange)
+                        }
 
                         HStack {
                             TextField("Latitude", text: $latitudeText).frame(width: 105)
@@ -313,6 +388,13 @@ struct ContentView: View {
         }
         Task { await model.recordGIF(to: url) }
     }
+}
+
+private struct UninstallRequest: Identifiable {
+    let id = UUID()
+    let bundleID: String
+    let targetID: String
+    let targetName: String
 }
 
 private struct TargetRow: View {

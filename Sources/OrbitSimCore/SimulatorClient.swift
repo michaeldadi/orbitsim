@@ -80,6 +80,35 @@ public struct SimulatorClient: Sendable {
         _ = try await run(["ui", id, "appearance", dark ? "dark" : "light"])
     }
 
+    public func increaseContrast(_ id: String) async throws -> Bool {
+        let value = try await run(["ui", id, "increase_contrast"]).stdout
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        switch value {
+        case "enabled": return true
+        case "disabled": return false
+        case "unsupported": throw OrbitSimError.unsupportedAction("Increase Contrast is not supported by this Simulator")
+        default: throw OrbitSimError.invalidResponse(tool: "simctl ui increase_contrast")
+        }
+    }
+
+    public func setIncreaseContrast(_ id: String, enabled: Bool) async throws {
+        _ = try await run(["ui", id, "increase_contrast", enabled ? "enabled" : "disabled"])
+    }
+
+    public func contentSize(_ id: String) async throws -> SimulatorContentSize {
+        let value = try await run(["ui", id, "content_size"]).stdout
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if let size = SimulatorContentSize(rawValue: value) { return size }
+        if value == "unsupported" {
+            throw OrbitSimError.unsupportedAction("Content size is not supported by this Simulator")
+        }
+        throw OrbitSimError.invalidResponse(tool: "simctl ui content_size")
+    }
+
+    public func setContentSize(_ id: String, size: SimulatorContentSize) async throws {
+        _ = try await run(["ui", id, "content_size", size.rawValue])
+    }
+
     public func setLocation(_ id: String, latitude: Double, longitude: Double) async throws {
         guard (-90...90).contains(latitude), (-180...180).contains(longitude) else {
             throw OrbitSimError.invalidArgument("Latitude or longitude is out of range")
@@ -212,6 +241,40 @@ public struct SimulatorClient: Sendable {
 
 public enum PrivacyAction: String, Sendable {
     case grant, revoke, reset
+}
+
+public enum SimulatorContentSize: String, CaseIterable, Sendable, Identifiable {
+    case extraSmall = "extra-small"
+    case small
+    case medium
+    case large
+    case extraLarge = "extra-large"
+    case extraExtraLarge = "extra-extra-large"
+    case extraExtraExtraLarge = "extra-extra-extra-large"
+    case accessibilityMedium = "accessibility-medium"
+    case accessibilityLarge = "accessibility-large"
+    case accessibilityExtraLarge = "accessibility-extra-large"
+    case accessibilityExtraExtraLarge = "accessibility-extra-extra-large"
+    case accessibilityExtraExtraExtraLarge = "accessibility-extra-extra-extra-large"
+
+    public var id: String { rawValue }
+
+    public var label: String {
+        switch self {
+        case .extraSmall: "Extra Small"
+        case .small: "Small"
+        case .medium: "Medium"
+        case .large: "Large"
+        case .extraLarge: "Extra Large"
+        case .extraExtraLarge: "Extra Extra Large"
+        case .extraExtraExtraLarge: "Extra Extra Extra Large"
+        case .accessibilityMedium: "Accessibility Medium"
+        case .accessibilityLarge: "Accessibility Large"
+        case .accessibilityExtraLarge: "Accessibility Extra Large"
+        case .accessibilityExtraExtraLarge: "Accessibility Extra Extra Large"
+        case .accessibilityExtraExtraExtraLarge: "Accessibility Extra Extra Extra Large"
+        }
+    }
 }
 
 public enum ScreenshotFormat: String, Sendable {
