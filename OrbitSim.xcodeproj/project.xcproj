@@ -21,6 +21,7 @@
       "kind": "group",
       "path": "Sources/OrbitSimApp",
       "children": [
+        { "path": "Assets.xcassets", "target-membership": [ "OrbitSim/resources" ] },
         { "path": "BuildInsightsView.swift", "target-membership": [ "OrbitSim/compile-sources" ] },
         { "path": "ContentView.swift", "target-membership": [ "OrbitSim/compile-sources" ] },
         { "path": "Info.plist" },
@@ -60,6 +61,7 @@
       "build-phases": [
         "compile-sources",
         "frameworks",
+        "resources",
       ],
       "package-product-members": [
         {
