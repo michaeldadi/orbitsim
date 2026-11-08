@@ -240,7 +240,11 @@ struct ContentView: View {
         panel.allowedContentTypes = [.png]
         panel.nameFieldStringValue = "OrbitSim_\(target.name.replacingOccurrences(of: " ", with: "_"))_\(Date.now.formatted(.iso8601.year().month().day())).png"
         guard panel.runModal() == .OK, let url = panel.url else { return }
-        Task { await model.screenshot(to: url) }
+        Task {
+            if await model.screenshot(to: url) {
+                openWindow(id: "capture")
+            }
+        }
     }
 
     private func selectApp() {

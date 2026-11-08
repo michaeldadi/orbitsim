@@ -28,6 +28,13 @@ struct OrbitSimApp: App {
         }
         .defaultSize(width: 760, height: 680)
 
+        Window("Last Capture", id: "capture") {
+            CaptureShelfView(model: model)
+        }
+        .defaultSize(width: 340, height: 460)
+        .windowLevel(.floating)
+        .windowResizability(.contentSize)
+
         MenuBarExtra("OrbitSim", systemImage: "circle.hexagongrid.fill") {
             StatusMenu(model: model, updates: updates)
         }

@@ -23,6 +23,7 @@
       "children": [
         { "path": "Assets.xcassets", "target-membership": [ "OrbitSim/resources" ] },
         { "path": "BuildInsightsView.swift", "target-membership": [ "OrbitSim/compile-sources" ] },
+        { "path": "CaptureShelfView.swift", "target-membership": [ "OrbitSim/compile-sources" ] },
         { "path": "ContentView.swift", "target-membership": [ "OrbitSim/compile-sources" ] },
         { "path": "Info.plist" },
         { "path": "OrbitSimApp.swift", "target-membership": [ "OrbitSim/compile-sources" ] },

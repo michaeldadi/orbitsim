@@ -14,6 +14,7 @@ final class TargetViewModel {
     var selectedDisplayID: String?
     var displayError: String?
     var isLoadingDisplays = false
+    var latestCaptureURL: URL?
 
     private let registry = TargetRegistry()
 
@@ -54,16 +55,19 @@ final class TargetViewModel {
         }
     }
 
-    func screenshot(to destination: URL) async {
-        guard let selectedTargetID else { return }
+    @discardableResult
+    func screenshot(to destination: URL) async -> Bool {
+        guard let selectedTargetID else { return false }
         if needsDisplaySelection {
             error = "Choose a display before capturing this Simulator."
-            return
+            return false
         }
         let display = selectedTarget?.kind == .simulator ? selectedDisplayID : nil
-        await run("Saved screenshot to \(destination.lastPathComponent)") {
+        let saved = await run("Saved screenshot to \(destination.lastPathComponent)") {
             try await registry.screenshotReplacing(selectedTargetID, at: destination, display: display)
         }
+        if saved { latestCaptureURL = destination }
+        return saved
     }
 
     func recordVideo(to destination: URL) async {
@@ -182,7 +186,8 @@ final class TargetViewModel {
         }
     }
 
-    private func run(_ success: String, operation: () async throws -> Void) async {
+    @discardableResult
+    private func run(_ success: String, operation: () async throws -> Void) async -> Bool {
         isBusy = true
         message = nil
         error = nil
@@ -190,8 +195,10 @@ final class TargetViewModel {
         do {
             try await operation()
             message = success
+            return true
         } catch {
             self.error = error.localizedDescription
+            return false
         }
     }
 }
