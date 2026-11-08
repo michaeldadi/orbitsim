@@ -14,7 +14,15 @@ struct ContentView: View {
     @State private var batteryText = ""
     @State private var pendingUninstall: UninstallRequest?
     @State private var selectedTextSize: SimulatorContentSize = .large
+    @State private var showRecentBuilds = false
+    @State private var recentBuilds: [BuildProduct] = []
+    @State private var selectedBuildID: String?
+    @State private var recentBuildsError: String?
+    @State private var isLoadingRecentBuilds = false
+    @State private var recentBuildTargetID: String?
+    @State private var recentBuildTargetName = ""
     @AppStorage("showPhysicalDevices") private var showPhysicalDevices = true
+    @AppStorage("buildInsightsRoot") private var buildInsightsRoot = ""
 
     var body: some View {
         NavigationSplitView {
@@ -72,6 +80,7 @@ struct ContentView: View {
         .onChange(of: model.selectedTargetID) { _, _ in
             bundleID = ""
             deepLink = ""
+            showRecentBuilds = false
         }
         .onChange(of: showPhysicalDevices) { _, visible in
             if !visible, model.selectedTarget?.kind == .physical {
@@ -89,6 +98,7 @@ struct ContentView: View {
         } message: { request in
             Text("Remove \(request.bundleID) and its app data from \(request.targetName)?")
         }
+        .sheet(isPresented: $showRecentBuilds) { recentBuildsSheet }
     }
 
     @ViewBuilder
@@ -171,6 +181,12 @@ struct ContentView: View {
                         .disabled(bundleID.isEmpty || model.isBusy || !canAct)
                         Button("Install App…") { selectApp() }
                             .disabled(model.isBusy || !canAct)
+                        if target.kind == .simulator && target.platform == "iOS" {
+                            Button("Recent Builds…") {
+                                Task { await loadRecentBuilds(for: target) }
+                            }
+                            .disabled(model.isBusy || !canAct)
+                        }
                     }
                     HStack {
                         TextField("https://example.com or yourapp://path", text: $deepLink)
@@ -387,6 +403,109 @@ struct ContentView: View {
             return
         }
         Task { await model.recordGIF(to: url) }
+    }
+
+    private var recentBuildsSheet: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Recent Simulator Builds")
+                .font(.title2.weight(.semibold))
+            Text("Choose the exact app to install and relaunch on \(recentBuildTargetName).")
+                .foregroundStyle(.secondary)
+            HStack {
+                Text(buildInsightsRoot.isEmpty ? "~/Library/Developer/Xcode/DerivedData" : buildInsightsRoot)
+                    .font(.caption).foregroundStyle(.secondary)
+                    .lineLimit(1).truncationMode(.middle)
+                Spacer()
+                Button("Choose DerivedData…") { chooseRecentBuildRoot() }
+                    .disabled(isLoadingRecentBuilds || model.isBusy)
+            }
+            if isLoadingRecentBuilds {
+                ProgressView("Scanning Xcode build products…")
+            } else if let recentBuildsError {
+                Label(recentBuildsError, systemImage: "exclamationmark.triangle")
+                    .foregroundStyle(.red)
+            } else if recentBuilds.isEmpty {
+                ContentUnavailableView("No Simulator builds found", systemImage: "hammer",
+                                       description: Text("Build an iOS app in Xcode, then refresh this list."))
+            } else {
+                List(selection: $selectedBuildID) {
+                    ForEach(recentBuilds) { product in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(product.name).font(.headline)
+                            Text("\(product.project) · \(product.configuration) · \(product.bundleID)")
+                                .font(.caption).foregroundStyle(.secondary)
+                            Text(product.appURL.path)
+                                .font(.caption2).foregroundStyle(.tertiary)
+                                .lineLimit(1).truncationMode(.middle)
+                        }
+                        .padding(.vertical, 4)
+                        .tag(product.id)
+                    }
+                }
+            }
+            if let error = model.error { Text(error).foregroundStyle(.red) }
+            HStack {
+                Button("Refresh") {
+                    if let target = model.selectedTarget {
+                        Task { await loadRecentBuilds(for: target) }
+                    }
+                }
+                .disabled(isLoadingRecentBuilds || model.isBusy)
+                Spacer()
+                Button("Cancel") { showRecentBuilds = false }
+                Button("Install & Relaunch") {
+                    guard let product = recentBuilds.first(where: { $0.id == selectedBuildID }),
+                          let recentBuildTargetID else { return }
+                    Task {
+                        if await model.installAndRelaunch(product, expectedTargetID: recentBuildTargetID) {
+                            showRecentBuilds = false
+                        }
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(selectedBuildID == nil || model.isBusy || isLoadingRecentBuilds)
+            }
+        }
+        .padding(24)
+        .frame(minWidth: 700, minHeight: 420)
+    }
+
+    private func loadRecentBuilds(for target: DeviceTarget) async {
+        guard target.kind == .simulator, target.platform == "iOS",
+              target.state == .booted else { return }
+        recentBuildTargetID = target.id
+        recentBuildTargetName = target.name
+        selectedBuildID = nil
+        recentBuilds = []
+        recentBuildsError = nil
+        isLoadingRecentBuilds = true
+        showRecentBuilds = true
+        let root = buildInsightsRoot.isEmpty
+            ? FileManager.default.homeDirectoryForCurrentUser
+                .appendingPathComponent("Library/Developer/Xcode/DerivedData")
+            : URL(fileURLWithPath: buildInsightsRoot).standardizedFileURL
+        do {
+            let found = try await Task.detached(priority: .utility) {
+                try BuildProductIndex().scan(derivedDataRoot: root, platform: .simulator)
+            }.value
+            guard model.selectedTargetID == target.id else { return }
+            recentBuilds = found
+        } catch {
+            guard model.selectedTargetID == target.id else { return }
+            recentBuildsError = error.localizedDescription
+        }
+        isLoadingRecentBuilds = false
+    }
+
+    private func chooseRecentBuildRoot() {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.prompt = "Use DerivedData"
+        guard panel.runModal() == .OK, let url = panel.url,
+              let target = model.selectedTarget else { return }
+        buildInsightsRoot = url.standardizedFileURL.path
+        Task { await loadRecentBuilds(for: target) }
     }
 }
 

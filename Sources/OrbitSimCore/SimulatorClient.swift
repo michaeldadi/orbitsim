@@ -125,9 +125,13 @@ public struct SimulatorClient: Sendable {
         _ = try await run(["install", id, app.path], timeoutSeconds: 120)
     }
 
-    public func launch(_ id: String, bundleID: String) async throws {
+    public func launch(_ id: String, bundleID: String,
+                       terminateRunningProcess: Bool = false) async throws {
         try Self.requireBundleID(bundleID)
-        _ = try await run(["launch", id, bundleID], timeoutSeconds: 60)
+        var arguments = ["launch"]
+        if terminateRunningProcess { arguments.append("--terminate-running-process") }
+        arguments += [id, bundleID]
+        _ = try await run(arguments, timeoutSeconds: 60)
     }
 
     public func terminate(_ id: String, bundleID: String) async throws {

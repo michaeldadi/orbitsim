@@ -165,6 +165,23 @@ final class TargetViewModel {
         }
     }
 
+    @discardableResult
+    func installAndRelaunch(_ product: BuildProduct, expectedTargetID: String) async -> Bool {
+        guard selectedTargetID == expectedTargetID,
+              let target = selectedTarget, target.kind == .simulator,
+              target.platform == "iOS",
+              target.state == .booted, product.platform == .simulator else {
+            error = "The selected Simulator changed. Select it again before installing a build."
+            return false
+        }
+        return await run("Installed and relaunched \(product.name) on \(target.name)") {
+            try BuildProductIndex().validate(product)
+            try await registry.simulators.install(target.id, app: product.appURL)
+            try await registry.simulators.launch(target.id, bundleID: product.bundleID,
+                                                 terminateRunningProcess: true)
+        }
+    }
+
     func launch(bundleID: String) async {
         guard let selectedTargetID else { return }
         await run("Launched \(bundleID)") {
