@@ -12,7 +12,7 @@ OrbitSim is an independent macOS workbench for iOS Simulator and paired-device t
 - Capture a PNG from a booted Simulator through the CLI or native Save panel (verified on iPhone 17 Pro, iOS 26.4.1).
 - Show a floating preview after a successful native screenshot, with drag, Copy Image, and Reveal in Finder actions. The preview was checked on the fixture Simulator; transfer actions still need live checks.
 - Export Simulator screenshots as PNG, JPEG, TIFF, or BMP. All four types were verified at 1206×2622 on the fixture Simulator.
-- Record a bounded MP4 from a booted Simulator; a two-second request produced a valid 1.58-second video track. Startup time is excluded from the recorded footage.
+- Record a bounded MP4 from a booted Simulator through the CLI or native Save panel. A two-second CLI request produced 1.58 seconds of video; a 10-second native request produced a valid 9.67-second video track. Startup time is excluded from the recorded footage.
 - Export a bounded animated GIF from a selected Simulator through the CLI or native app. A fixture action changed during a 39-frame, 10 FPS GIF; physical-device GIFs and post-editing are pending.
 - CLI adapters for Simulator boot, shutdown, appearance, location, app install/launch/terminate, media, push, privacy, status bar, and display enumeration. Most actions are built but still need integration verification.
 - Physical-device PNG screenshot through `devicectl`, verified on a paired iPhone. App install/launch and URL actions still need device checks.
