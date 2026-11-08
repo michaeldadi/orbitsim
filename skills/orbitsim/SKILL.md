@@ -15,7 +15,7 @@ Run `orbitsim targets --json` and use the exact target ID supplied or selected b
 
 - Capture a PNG: `orbitsim screenshot --target <id> --output <new-file.png>`. Simulator output also accepts `--type jpeg|tiff|bmp|gif` with a matching file extension. The CLI refuses to overwrite an existing file. On a multi-screen Simulator, inspect `orbitsim displays --target <id> --json` and pass the intended `--display <screen-id>`.
 - Record a bounded Simulator clip: `orbitsim record --target <id> --output <new-file.mp4> --seconds <1-120> [--display <screen-id>]`.
-- Inspect a visible Simulator: `orbitsim elements --target <id> --json`. Text values are omitted unless the user requests them and `--include-text` is passed.
+- Inspect a visible Simulator: `orbitsim elements --target <id> --json`. The JSON includes screen-coordinate frames when macOS Accessibility provides them. Text values are omitted unless the user requests them and `--include-text` is passed. The current list can include Device Hub controls, so check identifiers carefully.
 - Press an identified control: `orbitsim interact --target <id> --element <accessibility-id> --action press`.
 - Set an editable field: `orbitsim interact --target <id> --element <accessibility-id> --action type --text <value>`. The text appears in the shell command line; use this only for non-sensitive test input.
 - Wait for a control: `orbitsim wait --target <id> --element <accessibility-id> --seconds <0.1-60>`.

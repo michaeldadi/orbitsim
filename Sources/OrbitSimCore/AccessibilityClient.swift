@@ -6,12 +6,22 @@ public struct SimulatorElement: Codable, Sendable {
     public let identifier: String
     public let role: String
     public let text: String?
+    public let frame: SimulatorElementFrame?
 
-    public init(identifier: String, role: String, text: String?) {
+    public init(identifier: String, role: String, text: String?, frame: SimulatorElementFrame?) {
         self.identifier = identifier
         self.role = role
         self.text = text
+        self.frame = frame
     }
+}
+
+/// Screen coordinates in points, as reported by the macOS Accessibility bridge.
+public struct SimulatorElementFrame: Codable, Sendable {
+    public let x: Double
+    public let y: Double
+    public let width: Double
+    public let height: Double
 }
 
 /// Reads the accessibility bridge exposed by a visible Device Hub window.
@@ -37,7 +47,8 @@ public struct AccessibilityClient {
                     ?? stringAttribute(element, kAXValueAttribute as String))
                 : nil
             if !result.contains(where: { $0.identifier == identifier && $0.role == role && $0.text == text }) {
-                result.append(SimulatorElement(identifier: identifier, role: role, text: text))
+                result.append(SimulatorElement(identifier: identifier, role: role,
+                                               text: text, frame: frame(of: element)))
             }
         }
         return result.sorted { $0.identifier < $1.identifier }
@@ -192,5 +203,25 @@ public struct AccessibilityClient {
 
     private func stringAttribute(_ element: AXUIElement, _ key: String) -> String? {
         attribute(element, key) as? String
+    }
+
+    private func frame(of element: AXUIElement) -> SimulatorElementFrame? {
+        guard let rawPosition = attribute(element, kAXPositionAttribute as String),
+              let rawSize = attribute(element, kAXSizeAttribute as String),
+              CFGetTypeID(rawPosition as CFTypeRef) == AXValueGetTypeID(),
+              CFGetTypeID(rawSize as CFTypeRef) == AXValueGetTypeID() else {
+            return nil
+        }
+        let position = rawPosition as! AXValue
+        let size = rawSize as! AXValue
+        var origin = CGPoint.zero
+        var dimensions = CGSize.zero
+        guard AXValueGetValue(position, .cgPoint, &origin),
+              AXValueGetValue(size, .cgSize, &dimensions),
+              dimensions.width > 0, dimensions.height > 0 else {
+            return nil
+        }
+        return SimulatorElementFrame(x: origin.x, y: origin.y,
+                                     width: dimensions.width, height: dimensions.height)
     }
 }
