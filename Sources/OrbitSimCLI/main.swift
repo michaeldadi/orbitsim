@@ -85,10 +85,17 @@ struct OrbitSimCommand {
         case "interact":
             let id = try required("--target", in: arguments)
             let identifier = try required("--element", in: arguments)
-            guard try required("--action", in: arguments) == "press" else {
-                throw OrbitSimError.invalidArgument("Only --action press is supported")
+            let action = try required("--action", in: arguments)
+            switch action {
+            case "press":
+                try await AccessibilityClient().press(targetID: id, identifier: identifier)
+            case "type":
+                try await AccessibilityClient().typeText(
+                    targetID: id, identifier: identifier, text: required("--text", in: arguments)
+                )
+            default:
+                throw OrbitSimError.invalidArgument("--action must be press or type")
             }
-            try await AccessibilityClient().press(targetID: id, identifier: identifier)
         case "wait":
             let id = try required("--target", in: arguments)
             let identifier = try required("--element", in: arguments)
@@ -264,7 +271,7 @@ struct OrbitSimCommand {
         Usage:
           orbitsim targets [--json]
           orbitsim elements --target <simulator-id> [--json] [--include-text]
-          orbitsim interact --target <simulator-id> --element <accessibility-id> --action press
+          orbitsim interact --target <simulator-id> --element <accessibility-id> --action press|type [--text <value>]
           orbitsim wait --target <simulator-id> --element <accessibility-id> --seconds <0.1-60>
           orbitsim status [--json]
           orbitsim builds [--root <DerivedData-directory>] [--json]

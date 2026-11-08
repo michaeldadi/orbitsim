@@ -17,6 +17,7 @@ Run `orbitsim targets --json` and use the exact target ID supplied or selected b
 - Record a bounded Simulator clip: `orbitsim record --target <id> --output <new-file.mp4> --seconds <1-120>`.
 - Inspect a visible Simulator: `orbitsim elements --target <id> --json`. Text values are omitted unless the user requests them and `--include-text` is passed.
 - Press an identified control: `orbitsim interact --target <id> --element <accessibility-id> --action press`.
+- Set an editable field: `orbitsim interact --target <id> --element <accessibility-id> --action type --text <value>`. The text appears in the shell command line; use this only for non-sensitive test input.
 - Wait for a control: `orbitsim wait --target <id> --element <accessibility-id> --seconds <0.1-60>`.
 - Use `orbitsim help` for lifecycle, links, location, appearance, privacy, push, status bar, media, builds, and diagnostics.
 

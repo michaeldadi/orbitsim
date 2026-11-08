@@ -44,24 +44,33 @@ public struct AccessibilityClient {
     }
 
     public func press(targetID: String, identifier: String) async throws {
-        guard !identifier.isEmpty else {
-            throw OrbitSimError.invalidArgument("An accessibility identifier is required")
-        }
-        let root = try await targetWindow(targetID)
-        var matches: [AXUIElement] = []
-        visit(root) { element in
-            guard stringAttribute(element, kAXIdentifierAttribute as String) == identifier else { return }
-            if !matches.contains(where: { CFEqual($0, element) }) { matches.append(element) }
-        }
-        guard matches.count == 1, let match = matches.first else {
-            throw OrbitSimError.unsupportedAction(matches.isEmpty
-                ? "No visible element has identifier \(identifier)"
-                : "Multiple visible elements have identifier \(identifier)")
-        }
+        let match = try await uniqueElement(targetID: targetID, identifier: identifier)
         let status = AXUIElementPerformAction(match, kAXPressAction as CFString)
         guard status == .success else {
             throw OrbitSimError.unsupportedAction("Could not press \(identifier) (Accessibility status \(status.rawValue))")
         }
+    }
+
+    public func typeText(targetID: String, identifier: String, text: String) async throws {
+        guard text.utf8.count <= 4_096 else {
+            throw OrbitSimError.invalidArgument("Text must be at most 4096 UTF-8 bytes")
+        }
+        let match = try await uniqueElement(targetID: targetID, identifier: identifier)
+        var settable = DarwinBoolean(false)
+        guard AXUIElementIsAttributeSettable(match, kAXValueAttribute as CFString, &settable) == .success,
+              settable.boolValue else {
+            throw OrbitSimError.unsupportedAction("Element \(identifier) is not an editable field")
+        }
+        let status = AXUIElementSetAttributeValue(match, kAXValueAttribute as CFString, text as CFTypeRef)
+        // Device Hub's iOS bridge can report cannotComplete after the field
+        // actually commits the value. Read back the value before deciding.
+        for _ in 0..<10 {
+            if stringAttribute(match, kAXValueAttribute as String) == text { return }
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        throw OrbitSimError.unsupportedAction(
+            "Could not verify text in \(identifier) (Accessibility status \(status.rawValue))"
+        )
     }
 
     public func wait(targetID: String, identifier: String, timeoutSeconds: Double) async throws {
@@ -122,6 +131,24 @@ public struct AccessibilityClient {
             )
         }
         return window
+    }
+
+    private func uniqueElement(targetID: String, identifier: String) async throws -> AXUIElement {
+        guard !identifier.isEmpty else {
+            throw OrbitSimError.invalidArgument("An accessibility identifier is required")
+        }
+        let root = try await targetWindow(targetID)
+        var matches: [AXUIElement] = []
+        visit(root) { element in
+            guard stringAttribute(element, kAXIdentifierAttribute as String) == identifier else { return }
+            if !matches.contains(where: { CFEqual($0, element) }) { matches.append(element) }
+        }
+        guard matches.count == 1, let match = matches.first else {
+            throw OrbitSimError.unsupportedAction(matches.isEmpty
+                ? "No visible element has identifier \(identifier)"
+                : "Multiple visible elements have identifier \(identifier)")
+        }
+        return match
     }
 
     private func descendantText(_ element: AXUIElement, depth: Int) -> [String] {

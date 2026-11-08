@@ -50,7 +50,7 @@ Baseline: RocketSim 16.8.0 installed on macOS 27.2; public documentation reviewe
 | F36b | Full build insights and trends | macOS | activity-log parser / SQLite | Classify clean/incremental, plot history, show step-level timing | incomplete |
 | F37 | Accessibility tree and element highlight | S | Device Hub Accessibility bridge | Read identifiers, frames, labels; highlight visible controls | incomplete (CLI read six fixture identifiers; frame/highlight pending) |
 | F38 | VoiceOver Navigator and audit | S | accessibility test runner | Navigate fixture, export actionable findings | incomplete |
-| F39 | Agent elements/interact/wait | S | Device Hub Accessibility bridge and future local socket | Semantic tap/type/wait with stale-target and timeout behavior | incomplete (CLI elements, press and wait verified on fixture; type, gesture, stale-target and IPC pending) |
+| F39 | Agent elements/interact/wait | S | Device Hub Accessibility bridge and future local socket | Semantic tap/type/wait with stale-target and timeout behavior | incomplete (CLI elements, press, type, wait and timeout verified on fixture; gesture, stale-target and IPC pending) |
 | F40 | Agent screenshots/recording/doctor | S | CLI and app IPC | Stable machine-readable schema and errors | incomplete (CLI screenshot/doctor partial) |
 | F41 | Browser preview and remote control | S | local HTTP/WebSocket with token | Localhost default; explicit time-limited LAN sharing | incomplete |
 | F42 | Physical-device live preview | P | USB stream / ScreenCaptureKit proof | Preview at physical, point, pixel, fit scales | incomplete |
