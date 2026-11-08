@@ -36,8 +36,14 @@ jobs:
             -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
       - name: Bundle checks
         run: |
-          plutil -lint DerivedData/Build/Products/Debug/OrbitSim.app/Contents/Info.plist
-          .build/debug/orbitsim help >/dev/null
+          app=DerivedData/Build/Products/Debug/OrbitSim.app
+          plutil -lint "$app/Contents/Info.plist"
+          test -x "$app/Contents/MacOS/OrbitSim"
+          test -x "$app/Contents/SharedSupport/orbitsim"
+          app_version=$(plutil -extract CFBundleShortVersionString raw -o - "$app/Contents/Info.plist")
+          cli_version=$("$app/Contents/SharedSupport/orbitsim" version --json | jq -r .appVersion)
+          test "$app_version" = "$cli_version"
+          "$app/Contents/SharedSupport/orbitsim" help >/dev/null
 
   report-compatibility-break:
     needs: smoke

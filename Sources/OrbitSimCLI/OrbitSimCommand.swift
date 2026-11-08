@@ -22,12 +22,16 @@ struct OrbitSimCommand {
         case "help", "--help", "-h":
             printUsage()
         case "version", "--version":
-            print("orbitsim 0.1.0-dev")
+            if arguments.contains("--json") {
+                print("{\"appVersion\":\"\(OrbitSimVersion.app)\",\"protocolVersion\":\(OrbitSimVersion.protocolVersion)}")
+            } else {
+                print("orbitsim \(OrbitSimVersion.app)")
+            }
         case "status":
             let targets = try await registry.allTargets()
             let report = StatusReport(
-                protocolVersion: 1,
-                appVersion: "0.1.0-dev",
+                protocolVersion: OrbitSimVersion.protocolVersion,
+                appVersion: OrbitSimVersion.app,
                 macOS: ProcessInfo.processInfo.operatingSystemVersionString,
                 targetCount: targets.count,
                 activeTargetIDs: targets.filter { $0.state == .booted || $0.state == .connected }.map(\.id)

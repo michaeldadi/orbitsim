@@ -7,6 +7,7 @@ OrbitSim is an independent macOS workbench for iOS Simulator and paired-device t
 ## Current capabilities
 
 - Native SwiftUI window and menu bar entry point.
+- The `orbitsim` CLI is built into the macOS app at `Contents/SharedSupport/orbitsim`. Release Settings can install a safe link in `~/.local/bin`; Debug builds keep that button disabled. The app and CLI report the same version, with a bundle check in CI.
 - Compact Side Tools window follows an explicitly selected Device Hub target window. Its initial attachment was verified on the iPhone 17 Pro Simulator; move, resize, and disconnect behavior is still being tested.
 - Live Device Hub window preview for a selected Simulator or connected device, with an explicit window picker. The native stream was verified on both target types; it stops if Device Hub switches targets. This is a host-window preview, and physical scale modes remain incomplete.
 - Discover installed Simulators and paired devices by stable ID.
@@ -34,7 +35,7 @@ swift test
 xcodebuild -project OrbitSim.xcodeproj -scheme OrbitSim -configuration Debug -destination 'platform=macOS' -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
 ```
 
-Run `./.build/debug/orbitsim help` for CLI usage. Mutating commands require a specific target ID from `orbitsim targets`; OrbitSim deliberately never chooses an arbitrary booted Simulator. The Xcode project uses the Xcode 27 JSON `.xcproj` format. Do not run XcodeGen on it.
+Run `./.build/debug/orbitsim help` for CLI usage, or run the CLI from the built app at `DerivedData/Build/Products/Debug/OrbitSim.app/Contents/SharedSupport/orbitsim`. Mutating commands require a specific target ID from `orbitsim targets`; OrbitSim deliberately never chooses an arbitrary booted Simulator. The Xcode project uses the Xcode 27 JSON `.xcproj` format. Do not run XcodeGen on it.
 
 `OrbitFixture` is an included iOS Simulator test app with stable accessibility identifiers and a `orbitsimfixture://` URL scheme. Build it with the `OrbitFixture` Xcode scheme, then use it to test lifecycle, links, and agent commands on a disposable Simulator.
 

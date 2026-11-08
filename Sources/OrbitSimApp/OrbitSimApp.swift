@@ -47,7 +47,7 @@ struct OrbitSimApp: App {
 
         Settings {
             SettingsView(updatesConfigured: updates.isConfigured)
-                .frame(width: 480, height: 320)
+                .frame(width: 520, height: 390)
         }
     }
 }

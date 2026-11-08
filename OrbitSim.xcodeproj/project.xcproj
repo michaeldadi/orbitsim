@@ -34,6 +34,12 @@
       ],
     }, {
       "kind": "group",
+      "path": "Sources/OrbitSimCLI",
+      "children": [
+        { "path": "OrbitSimCommand.swift", "target-membership": [ "OrbitSimCLI/compile-sources" ] },
+      ],
+    }, {
+      "kind": "group",
       "path": "Fixtures/OrbitFixture",
       "children": [
         { "path": "Info.plist" },
@@ -50,6 +56,8 @@
       "name": "Products",
       "children": [
         { "path": "<PRODUCTS>/OrbitSim.app", "id": "74A62655784FAE771355DF7A", "type": "wrapper.application", "index": false },
+        { "path": "<PRODUCTS>/orbitsim", "id": "5E60D02BC264480A93625A31", "type": "compiled.mach-o.executable", "index": false,
+          "target-membership": [ { "build-phase": "OrbitSim/copy/Embed CLI", "code-sign-on-copy": true } ] },
         { "path": "<PRODUCTS>/OrbitFixture.app", "id": "C979D432AE2240BAA860E124", "type": "wrapper.application", "index": false },
       ],
     },
@@ -64,7 +72,9 @@
         "compile-sources",
         "frameworks",
         "resources",
+        { "kind": "copy", "name": "Embed CLI", "bundle-base-path": "shared-support-directory" },
       ],
+      "dependencies": ["OrbitSimCLI"],
       "package-product-members": [
         {
           "product-name": "OrbitSimCore",
@@ -85,6 +95,19 @@
         ],
         "PRODUCT_BUNDLE_IDENTIFIER": "io.github.michaeldadi.orbitsim",
         "PRODUCT_NAME": "OrbitSim",
+        "SDKROOT": "macosx",
+      },
+    }, {
+      "name": "OrbitSimCLI",
+      "id": "418C3AD12F764209ADB04C30",
+      "product": "Products/orbitsim",
+      "product-type": "tool",
+      "build-phases": ["compile-sources", "frameworks"],
+      "package-product-members": [
+        { "product-name": "OrbitSimCore", "build-phase": { "build-phase": "frameworks" } },
+      ],
+      "build-settings": {
+        "PRODUCT_NAME": "orbitsim",
         "SDKROOT": "macosx",
       },
     }, {
