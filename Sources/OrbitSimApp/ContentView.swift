@@ -7,6 +7,10 @@ struct ContentView: View {
     var model: TargetViewModel
     @State private var deepLink = ""
     @State private var bundleID = ""
+    @State private var latitudeText = ""
+    @State private var longitudeText = ""
+    @State private var statusTime = ""
+    @State private var batteryText = ""
 
     var body: some View {
         NavigationSplitView {
@@ -55,6 +59,7 @@ struct ContentView: View {
 
     @ViewBuilder
     private func targetDetails(_ target: DeviceTarget) -> some View {
+        let canAct = target.state == .booted || target.state == .connected
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
                 HStack(alignment: .top) {
@@ -96,9 +101,9 @@ struct ContentView: View {
                             .textFieldStyle(.roundedBorder)
                             .accessibilityLabel("App bundle identifier")
                         Button("Launch") { Task { await model.launch(bundleID: bundleID) } }
-                            .disabled(bundleID.isEmpty || model.isBusy)
+                            .disabled(bundleID.isEmpty || model.isBusy || !canAct)
                         Button("Install App…") { selectApp() }
-                            .disabled(model.isBusy)
+                            .disabled(model.isBusy || !canAct)
                     }
                     HStack {
                         TextField("https://example.com or yourapp://path", text: $deepLink)
@@ -111,7 +116,7 @@ struct ContentView: View {
                             }
                             Task { await model.openURL(url) }
                         }
-                        .disabled(deepLink.isEmpty || model.isBusy)
+                        .disabled(deepLink.isEmpty || model.isBusy || !canAct)
                     }
                 }
                 .padding(22)
@@ -124,11 +129,40 @@ struct ContentView: View {
                             Button(target.state == .booted ? "Shut Down" : "Boot") {
                                 Task { await model.bootOrShutdown() }
                             }
-                            Button("Light") { Task { await model.setAppearance(dark: false) } }
-                            Button("Dark") { Task { await model.setAppearance(dark: true) } }
                             Spacer()
                         }
                         .disabled(model.isBusy)
+
+                        Divider()
+                        HStack {
+                            Button("Light") { Task { await model.setAppearance(dark: false) } }
+                            Button("Dark") { Task { await model.setAppearance(dark: true) } }
+                            Button("Import Media…") { selectMedia() }
+                            Button("Send Push…") { selectPushPayload() }
+                                .disabled(bundleID.isEmpty)
+                            Spacer()
+                        }
+                        .disabled(model.isBusy || !canAct)
+
+                        HStack {
+                            TextField("Latitude", text: $latitudeText).frame(width: 105)
+                            TextField("Longitude", text: $longitudeText).frame(width: 105)
+                            Button("Set Location") { applyLocation() }
+                                .disabled(latitudeText.isEmpty || longitudeText.isEmpty)
+                            Button("Clear Location") { Task { await model.clearLocation() } }
+                            Spacer()
+                        }
+                        .disabled(model.isBusy || !canAct)
+
+                        HStack {
+                            TextField("Time (9:41)", text: $statusTime).frame(width: 120)
+                            TextField("Battery %", text: $batteryText).frame(width: 90)
+                            Button("Set Status Bar") { applyStatusBar() }
+                                .disabled(statusTime.isEmpty && batteryText.isEmpty)
+                            Button("Clear") { Task { await model.clearStatusBar() } }
+                            Spacer()
+                        }
+                        .disabled(model.isBusy || !canAct)
                     }
                     .padding(22)
                     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18))
@@ -184,6 +218,39 @@ struct ContentView: View {
         panel.canChooseFiles = true
         guard panel.runModal() == .OK, let url = panel.url else { return }
         Task { await model.install(app: url) }
+    }
+
+    private func selectMedia() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        Task { await model.addMedia(url) }
+    }
+
+    private func selectPushPayload() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.json]
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        Task { await model.sendPush(bundleID: bundleID, payload: url) }
+    }
+
+    private func applyLocation() {
+        guard let latitude = Double(latitudeText), let longitude = Double(longitudeText) else {
+            model.error = "Latitude and longitude must be numbers."
+            return
+        }
+        Task { await model.setLocation(latitude: latitude, longitude: longitude) }
+    }
+
+    private func applyStatusBar() {
+        let battery = batteryText.isEmpty ? nil : Int(batteryText)
+        if !batteryText.isEmpty && battery == nil {
+            model.error = "Battery must be an integer from 0 to 100."
+            return
+        }
+        Task { await model.setStatusBar(time: statusTime.isEmpty ? nil : statusTime,
+                                        batteryLevel: battery) }
     }
 
     private func saveRecording(_ target: DeviceTarget) {

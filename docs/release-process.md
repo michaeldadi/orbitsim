@@ -1,6 +1,6 @@
 # Release and update process
 
-OrbitSim uses Sparkle 2.10.0 for signed update checks in Release builds. Debug builds do not start the updater. The appcast URL is `https://michaeldadi.github.io/orbitsim/appcast.xml`; publication requires GitHub Pages to serve this repository's `docs/` directory.
+OrbitSim uses Sparkle 2.10.0 for signed update checks in Release builds. Debug builds do not start the updater. GitHub Pages serves this repository's `docs/` directory. The appcast URL is `https://michaeldadi.github.io/orbitsim/appcast.xml`; the feed will be published with the first signed release.
 
 The Sparkle EdDSA public key is in `Info.plist`. Its private counterpart is stored only in the macOS login Keychain under account `io.github.michaeldadi.orbitsim`. Do not export it into the repository or CI logs. The app also requires Apple Developer ID signing and notarization. Sparkle verifies the archive before extraction and requires a signed feed.
 

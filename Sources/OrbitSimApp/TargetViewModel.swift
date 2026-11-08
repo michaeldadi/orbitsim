@@ -87,6 +87,48 @@ final class TargetViewModel {
         }
     }
 
+    func setLocation(latitude: Double, longitude: Double) async {
+        guard let target = selectedTarget, target.kind == .simulator else { return }
+        await run("Set test location for \(target.name)") {
+            try await registry.simulators.setLocation(target.id, latitude: latitude, longitude: longitude)
+        }
+    }
+
+    func clearLocation() async {
+        guard let target = selectedTarget, target.kind == .simulator else { return }
+        await run("Cleared test location") {
+            try await registry.simulators.clearLocation(target.id)
+        }
+    }
+
+    func setStatusBar(time: String?, batteryLevel: Int?) async {
+        guard let target = selectedTarget, target.kind == .simulator else { return }
+        await run("Updated status bar") {
+            try await registry.simulators.overrideStatusBar(target.id, time: time, batteryLevel: batteryLevel)
+        }
+    }
+
+    func clearStatusBar() async {
+        guard let target = selectedTarget, target.kind == .simulator else { return }
+        await run("Cleared status bar overrides") {
+            try await registry.simulators.clearStatusBar(target.id)
+        }
+    }
+
+    func addMedia(_ file: URL) async {
+        guard let target = selectedTarget, target.kind == .simulator else { return }
+        await run("Imported \(file.lastPathComponent)") {
+            try await registry.simulators.addMedia(target.id, file: file)
+        }
+    }
+
+    func sendPush(bundleID: String, payload: URL) async {
+        guard let target = selectedTarget, target.kind == .simulator else { return }
+        await run("Sent test notification") {
+            try await registry.simulators.sendPush(target.id, bundleID: bundleID, payload: payload)
+        }
+    }
+
     private func run(_ success: String, operation: () async throws -> Void) async {
         isBusy = true
         message = nil

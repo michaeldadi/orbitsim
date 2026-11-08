@@ -57,7 +57,7 @@ Baseline: RocketSim 16.8.0 installed on macOS 27.2; public documentation reviewe
 | F44 | Physical location and time zone | P | `devicectl` capability probe | Set/restore on paired iPhone running iOS 27 | incomplete |
 | F45 | Local retention, redaction, migrations | macOS | SQLite WAL, file store | Bounded queue, redacted export, migration recovery | incomplete |
 | F46 | Signed automatic updates and rollback | macOS | Developer ID, notarization, Sparkle 2.10.0 | Install two signed versions and recovery build | incomplete (framework integrated; feed and drill pending) |
-| F47 | Xcode/macOS compatibility detection | macOS | scheduled `xcode-27` smoke workflow | Detect new SDK break and open redacted issue | incomplete (workflow authored, hosted run pending) |
+| F47 | Xcode/macOS compatibility detection | macOS | scheduled `xcode-27` smoke workflow | Detect new SDK break and open redacted issue | incomplete (first hosted smoke passed; failure issue path untested) |
 
 The installed app showed Pro-gated settings in this environment. Rows sourced from public RocketSim documentation are a feature inventory, not a claim that Pro behavior was exercised locally. Where a smaller fallback works, the row stays incomplete until its stated acceptance test passes.
 
