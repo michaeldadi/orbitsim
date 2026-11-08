@@ -70,6 +70,8 @@ public struct SimulatorClient: Sendable {
         }
         arguments.append(destination.path)
         _ = try await run(arguments, timeoutSeconds: 90)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600],
+                                              ofItemAtPath: destination.path)
     }
 
     public func openURL(_ id: String, url: URL) async throws {

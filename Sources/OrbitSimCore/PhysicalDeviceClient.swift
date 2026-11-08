@@ -33,6 +33,8 @@ public struct PhysicalDeviceClient: Sendable {
             "device", "capture", "screenshot", "--device", id,
             "--destination", destination.path,
         ], timeoutSeconds: 90)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600],
+                                              ofItemAtPath: destination.path)
     }
 
     public func openURL(_ id: String, url: URL) async throws {

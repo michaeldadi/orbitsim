@@ -56,6 +56,8 @@ public struct TargetRegistry: Sendable {
         defer { try? FileManager.default.removeItem(at: temporary) }
         try await screenshot(id, to: temporary, display: display)
         try Data(contentsOf: temporary).write(to: destination, options: .atomic)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600],
+                                              ofItemAtPath: destination.path)
     }
 
     public func openURL(_ id: String, url: URL) async throws {
