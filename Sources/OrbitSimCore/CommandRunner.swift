@@ -18,13 +18,18 @@ public struct CommandRunner: Sendable {
         try await Task.detached(priority: .userInitiated) {
             let directory = FileManager.default.temporaryDirectory
                 .appendingPathComponent("orbitsim-\(UUID().uuidString)", isDirectory: true)
-            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            try FileManager.default.createDirectory(
+                at: directory, withIntermediateDirectories: true,
+                attributes: [.posixPermissions: 0o700]
+            )
             defer { try? FileManager.default.removeItem(at: directory) }
 
             let stdoutURL = directory.appendingPathComponent("stdout")
             let stderrURL = directory.appendingPathComponent("stderr")
-            FileManager.default.createFile(atPath: stdoutURL.path, contents: nil)
-            FileManager.default.createFile(atPath: stderrURL.path, contents: nil)
+            FileManager.default.createFile(atPath: stdoutURL.path, contents: nil,
+                                           attributes: [.posixPermissions: 0o600])
+            FileManager.default.createFile(atPath: stderrURL.path, contents: nil,
+                                           attributes: [.posixPermissions: 0o600])
             let stdoutHandle = try FileHandle(forWritingTo: stdoutURL)
             let stderrHandle = try FileHandle(forWritingTo: stderrURL)
             defer {

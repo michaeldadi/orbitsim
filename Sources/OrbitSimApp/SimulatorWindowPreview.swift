@@ -110,7 +110,8 @@ private final class SimulatorWindowPreviewModel {
             let content = try await SCShareableContent.current
             let matches = content.windows.filter {
                 $0.owningApplication?.bundleIdentifier == "com.apple.dt.Devices" &&
-                $0.title == target.name && $0.frame.width > 0 && $0.frame.height > 0
+                ($0.title == target.name || $0.title?.hasPrefix("\(target.name) – ") == true) &&
+                $0.frame.width > 0 && $0.frame.height > 0
             }
             candidates = Dictionary(uniqueKeysWithValues: matches.map { ($0.windowID, $0) })
             windows = matches.map { PreviewWindow(id: $0.windowID, title: $0.title ?? target.name) }
