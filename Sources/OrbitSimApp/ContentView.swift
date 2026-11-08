@@ -10,6 +10,8 @@ struct ContentView: View {
     @State private var bundleID = ""
     @State private var latitudeText = ""
     @State private var longitudeText = ""
+    @State private var routeText = ""
+    @State private var routeSpeedText = "20"
     @State private var statusTime = ""
     @State private var batteryText = ""
     @State private var pendingUninstall: UninstallRequest?
@@ -310,6 +312,18 @@ struct ContentView: View {
                         .disabled(model.isBusy || !canAct)
 
                         HStack {
+                            TextField("Route: lat,lon; lat,lon; …", text: $routeText)
+                                .textFieldStyle(.roundedBorder)
+                                .accessibilityLabel("Route waypoints separated by semicolons")
+                            TextField("Speed m/s", text: $routeSpeedText)
+                                .frame(width: 95)
+                                .accessibilityLabel("Route speed in meters per second")
+                            Button("Start Route") { applyRoute() }
+                                .disabled(routeText.isEmpty)
+                        }
+                        .disabled(model.isBusy || !canAct)
+
+                        HStack {
                             TextField("Time (9:41)", text: $statusTime).frame(width: 120)
                             TextField("Battery %", text: $batteryText).frame(width: 90)
                             Button("Set Status Bar") { applyStatusBar() }
@@ -400,6 +414,20 @@ struct ContentView: View {
             return
         }
         Task { await model.setLocation(latitude: latitude, longitude: longitude) }
+    }
+
+    private func applyRoute() {
+        guard let speed = Double(routeSpeedText) else {
+            model.error = "Route speed must be a number in meters per second."
+            return
+        }
+        do {
+            let points = try routeText.split(separator: ";", omittingEmptySubsequences: false)
+                .map { try SimulatorWaypoint(String($0)) }
+            Task { await model.startRoute(waypoints: points, speedMetersPerSecond: speed) }
+        } catch {
+            model.error = error.localizedDescription
+        }
     }
 
     private func applyStatusBar() {

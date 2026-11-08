@@ -247,6 +247,15 @@ final class TargetViewModel {
         }
     }
 
+    func startRoute(waypoints: [SimulatorWaypoint], speedMetersPerSecond: Double) async {
+        guard let target = selectedTarget, target.kind == .simulator,
+              target.state == .booted else { return }
+        await run("Started route on \(target.name); Clear Location stops it") {
+            try await registry.simulators.startRoute(target.id, waypoints: waypoints,
+                                                     speedMetersPerSecond: speedMetersPerSecond)
+        }
+    }
+
     func clearLocation() async {
         guard let target = selectedTarget, target.kind == .simulator else { return }
         await run("Cleared test location") {

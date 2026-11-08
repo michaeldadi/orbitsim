@@ -34,7 +34,7 @@ Baseline: RocketSim 16.8.0 installed on macOS 27.2; public documentation reviewe
 | F24 | Deep and Universal Links | S/P | `simctl openurl`/`devicectl` | Open fixture link with chooser and fallback | incomplete (Simulator custom URL verified after Open prompt; Universal Link and physical device pending) |
 | F25 | Simulated push notification | S | `simctl push` | Deliver valid payload; reject invalid payload | verified (valid local payload reached the foreground OrbitFixture view from CLI and native Send Push, with the fixture counter advancing from 0 to 2; malformed payload is rejected before invoking `simctl`) |
 | F26 | Fixed location | S | `simctl location` | Set valid coordinates then clear | verified (CLI) |
-| F26b | Routes and time zone | S/P | `simctl location`/device tools | Drive route and restore prior state | incomplete |
+| F26b | Routes and time zone | S/P | `simctl location`/device tools | Drive route and restore prior state | incomplete (CLI two-waypoint route accepted by `simctl` on iPhone 17 Pro and cleared afterward; native route UI is built but unverified, fixture location updates and time zone controls pending) |
 | F27 | Status bar time and battery | S | `simctl status_bar` | Set then clear time and battery | verified (CLI) |
 | F27b | Status bar network and carrier | S | `simctl status_bar` | Set then clear all supported fields | verified (CLI set time, network, Wi-Fi and cellular modes/bars, carrier, battery state/level on iPhone 17 Pro; list showed each field; clear restored an empty override list) |
 | F28 | Light and dark appearance | S | `simctl ui` | Toggle then restore appearance | verified (CLI) |

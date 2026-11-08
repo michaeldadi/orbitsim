@@ -59,6 +59,24 @@ final class SimulatorClientTests: XCTestCase {
         }
     }
 
+    func testRouteRejectsMalformedWaypointsAndUnsafePacingBeforeSimctl() async throws {
+        XCTAssertThrowsError(try SimulatorWaypoint("37.3|-122.0"))
+        XCTAssertThrowsError(try SimulatorWaypoint("91,-122.0"))
+        XCTAssertThrowsError(try SimulatorWaypoint("nan,-122.0"))
+        let points = try [SimulatorWaypoint("37.332,-122.031"),
+                          SimulatorWaypoint("37.333,-122.030")]
+        XCTAssertEqual(points[0].simctlArgument, "37.33200000,-122.03100000")
+        do {
+            try await SimulatorClient().startRoute("unused", waypoints: points,
+                                                   speedMetersPerSecond: .infinity)
+            XCTFail("Expected invalid route speed to fail before simctl")
+        } catch OrbitSimError.invalidArgument {
+            // Expected.
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
     func testInvalidPushPayloadFailsBeforeCallingSimctl() async throws {
         let file = FileManager.default.temporaryDirectory
             .appendingPathComponent("orbitsim-test-\(UUID().uuidString).json")

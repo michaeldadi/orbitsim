@@ -261,6 +261,25 @@ struct OrbitSimCommand {
                 throw OrbitSimError.invalidArgument("Latitude and longitude must be numbers")
             }
             try await registry.setLocation(id, latitude: latitude, longitude: longitude)
+        case "route":
+            let id = try required("--target", in: arguments)
+            try await requireSimulator(id, registry: registry)
+            let waypoints = try values("--point", in: arguments).map(SimulatorWaypoint.init)
+            let speed = try optional("--speed", in: arguments).map { value in
+                guard let speed = Double(value) else {
+                    throw OrbitSimError.invalidArgument("--speed must be meters per second")
+                }
+                return speed
+            } ?? 20
+            let interval = try optional("--interval", in: arguments).map { value in
+                guard let interval = Double(value) else {
+                    throw OrbitSimError.invalidArgument("--interval must be seconds")
+                }
+                return interval
+            } ?? 1
+            try await registry.simulators.startRoute(id, waypoints: waypoints,
+                                                    speedMetersPerSecond: speed,
+                                                    updateIntervalSeconds: interval)
         case "clear-location":
             let id = try required("--target", in: arguments)
             try await registry.clearLocation(id)
@@ -317,6 +336,15 @@ struct OrbitSimCommand {
         return arguments[index + 1]
     }
 
+    private static func values(_ flag: String, in arguments: [String]) throws -> [String] {
+        try arguments.indices.filter { arguments[$0] == flag }.map { index in
+            guard arguments.indices.contains(index + 1), !arguments[index + 1].hasPrefix("--") else {
+                throw OrbitSimError.invalidArgument("Missing value for \(flag)")
+            }
+            return arguments[index + 1]
+        }
+    }
+
     private static func integer(_ flag: String, in arguments: [String]) throws -> Int? {
         guard let value = optional(flag, in: arguments) else { return nil }
         guard let number = Int(value) else {
@@ -359,6 +387,7 @@ struct OrbitSimCommand {
           orbitsim contrast --target <simulator-id> [--state enabled|disabled]
           orbitsim text-size --target <simulator-id> [--size extra-small|small|medium|large|extra-large|extra-extra-large|extra-extra-extra-large|accessibility-medium|accessibility-large|accessibility-extra-large|accessibility-extra-extra-large|accessibility-extra-extra-extra-large]
           orbitsim location --target <id> --latitude <n> --longitude <n>
+          orbitsim route --target <simulator-id> --point <lat,lon> --point <lat,lon> [--point <lat,lon> ...] [--speed <m/s>] [--interval <seconds>]
           orbitsim clear-location --target <id>
           orbitsim status-bar --target <simulator-id> [--time <value>] [--network hide|wifi|3g|4g|lte|lte-a|lte+|5g|5g+|5g-uwb|5g-uc] [--wifi-mode searching|failed|active] [--wifi-bars <0-3>] [--cellular-mode notSupported|searching|failed|active] [--cellular-bars <0-4>] [--carrier <name>] [--battery-state charging|charged|discharging] [--battery <0-100>]
           orbitsim status-bar --target <simulator-id> --list

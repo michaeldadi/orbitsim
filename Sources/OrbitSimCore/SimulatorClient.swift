@@ -116,6 +116,23 @@ public struct SimulatorClient: Sendable {
         _ = try await run(["location", id, "set", "\(latitude),\(longitude)"])
     }
 
+    public func startRoute(
+        _ id: String, waypoints: [SimulatorWaypoint], speedMetersPerSecond: Double = 20,
+        updateIntervalSeconds: Double = 1
+    ) async throws {
+        guard (2...100).contains(waypoints.count) else {
+            throw OrbitSimError.invalidArgument("A route needs 2–100 waypoints")
+        }
+        guard speedMetersPerSecond.isFinite, (0.1...500).contains(speedMetersPerSecond),
+              updateIntervalSeconds.isFinite, (0.1...60).contains(updateIntervalSeconds) else {
+            throw OrbitSimError.invalidArgument("Route speed or interval is out of range")
+        }
+        let arguments = ["location", id, "start",
+                         "--speed=\(speedMetersPerSecond)",
+                         "--interval=\(updateIntervalSeconds)"] + waypoints.map(\.simctlArgument)
+        _ = try await run(arguments)
+    }
+
     public func clearLocation(_ id: String) async throws {
         _ = try await run(["location", id, "clear"])
     }
@@ -323,6 +340,34 @@ public struct StatusBarOverride: Sendable {
         self.operatorName = operatorName
         self.batteryState = batteryState
         self.batteryLevel = batteryLevel
+    }
+}
+
+public struct SimulatorWaypoint: Sendable, Equatable {
+    public let latitude: Double
+    public let longitude: Double
+
+    public init(latitude: Double, longitude: Double) throws {
+        guard latitude.isFinite, longitude.isFinite,
+              (-90...90).contains(latitude), (-180...180).contains(longitude) else {
+            throw OrbitSimError.invalidArgument("Waypoint latitude or longitude is out of range")
+        }
+        self.latitude = latitude
+        self.longitude = longitude
+    }
+
+    public init(_ text: String) throws {
+        let parts = text.split(separator: ",", omittingEmptySubsequences: false)
+        guard parts.count == 2,
+              let latitude = Double(parts[0].trimmingCharacters(in: .whitespaces)),
+              let longitude = Double(parts[1].trimmingCharacters(in: .whitespaces)) else {
+            throw OrbitSimError.invalidArgument("Waypoint must be latitude,longitude")
+        }
+        try self.init(latitude: latitude, longitude: longitude)
+    }
+
+    var simctlArgument: String {
+        String(format: "%.8f,%.8f", locale: Locale(identifier: "en_US_POSIX"), latitude, longitude)
     }
 }
 
