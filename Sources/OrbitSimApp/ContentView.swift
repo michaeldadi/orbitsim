@@ -116,6 +116,10 @@ struct ContentView: View {
                             .font(.system(size: 34, weight: .bold, design: .rounded))
                         Text("\(target.platform) \(target.osVersion ?? "")  •  \(target.state.rawValue.capitalized)")
                             .foregroundStyle(.secondary)
+                        Button("Open Side Tools", systemImage: "sidebar.right") {
+                            openWindow(id: "side-tools")
+                        }
+                        .disabled(!canAct)
                     }
                     Spacer()
                     Image(systemName: target.kind == .simulator ? "iphone.gen3" : "iphone.radiowaves.left.and.right")

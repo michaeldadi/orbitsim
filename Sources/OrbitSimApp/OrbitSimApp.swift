@@ -28,6 +28,12 @@ struct OrbitSimApp: App {
         }
         .defaultSize(width: 760, height: 680)
 
+        Window("Side Tools", id: "side-tools") {
+            SideToolsView(model: model)
+        }
+        .windowLevel(.floating)
+        .windowResizability(.contentSize)
+
         Window("Last Capture", id: "capture") {
             CaptureShelfView(model: model)
         }
@@ -54,6 +60,7 @@ private struct StatusMenu: View {
     var body: some View {
         Button("Open OrbitSim") { openWindow(id: "main") }
         Button("Build Insights") { openWindow(id: "builds") }
+        Button("Side Tools") { openWindow(id: "side-tools") }
         Button("Check for Updates…") { updates.checkForUpdates() }
             .disabled(!updates.isConfigured)
         Button("Refresh Targets") { Task { await model.refresh() } }

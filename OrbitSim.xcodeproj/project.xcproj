@@ -28,6 +28,7 @@
         { "path": "Info.plist" },
         { "path": "OrbitSimApp.swift", "target-membership": [ "OrbitSim/compile-sources" ] },
         { "path": "SettingsView.swift", "target-membership": [ "OrbitSim/compile-sources" ] },
+        { "path": "SideToolsView.swift", "target-membership": [ "OrbitSim/compile-sources" ] },
         { "path": "SimulatorWindowPreview.swift", "target-membership": [ "OrbitSim/compile-sources" ] },
         { "path": "TargetViewModel.swift", "target-membership": [ "OrbitSim/compile-sources" ] },
       ],
