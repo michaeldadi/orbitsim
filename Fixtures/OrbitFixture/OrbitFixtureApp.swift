@@ -46,14 +46,75 @@ private final class FixtureAppDelegate: NSObject, UIApplicationDelegate, UNUserN
     }
 }
 
+@MainActor
+@Observable
+private final class FixtureLocationState: NSObject, CLLocationManagerDelegate {
+    private let manager = CLLocationManager()
+    var status = "not read"
+    var coordinate = "none"
+    var updateCount = 0
+    var isTracking = false
+
+    override init() {
+        super.init()
+        manager.delegate = self
+        manager.desiredAccuracy = kCLLocationAccuracyBest
+        manager.distanceFilter = kCLDistanceFilterNone
+        readPermission()
+    }
+
+    func readPermission() {
+        switch manager.authorizationStatus {
+        case .notDetermined: status = "not determined"
+        case .restricted: status = "restricted"
+        case .denied: status = "denied"
+        case .authorizedAlways: status = "always"
+        case .authorizedWhenInUse: status = "when in use"
+        @unknown default: status = "unknown"
+        }
+    }
+
+    func requestPermission() { manager.requestWhenInUseAuthorization() }
+
+    func start() {
+        isTracking = true
+        if manager.authorizationStatus == .authorizedWhenInUse ||
+            manager.authorizationStatus == .authorizedAlways {
+            manager.startUpdatingLocation()
+        }
+    }
+
+    func stop() {
+        isTracking = false
+        manager.stopUpdatingLocation()
+    }
+
+    nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        Task { @MainActor [weak self] in
+            self?.readPermission()
+            if self?.isTracking == true { self?.start() }
+        }
+    }
+
+    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let latest = locations.last else { return }
+        let latitude = latest.coordinate.latitude
+        let longitude = latest.coordinate.longitude
+        let count = locations.count
+        Task { @MainActor [weak self] in
+            self?.coordinate = String(format: "%.6f, %.6f", latitude, longitude)
+            self?.updateCount += count
+        }
+    }
+}
+
 private struct FixtureView: View {
     @State private var tapCount = 0
     @State private var enteredText = ""
     @State private var lastLink = "none"
     @State private var pushState = FixturePushState.shared
     @State private var notificationStatus = "not requested"
-    @State private var locationManager = CLLocationManager()
-    @State private var locationStatus = "not read"
+    @State private var locationState = FixtureLocationState()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
@@ -90,28 +151,27 @@ private struct FixtureView: View {
             Text("Push: \(pushState.count) · \(pushState.lastTitle)")
                 .accessibilityIdentifier("fixture.push")
             HStack {
-                Button("Read location permission") { refreshLocationPermission() }
+                Button("Read location permission") { locationState.readPermission() }
                     .accessibilityIdentifier("fixture.location-read")
-                Button("Request location") { locationManager.requestWhenInUseAuthorization() }
+                Button("Request location") { locationState.requestPermission() }
                     .accessibilityIdentifier("fixture.location-request")
             }
-            Text("Location permission: \(locationStatus)")
+            Text("Location permission: \(locationState.status)")
                 .accessibilityIdentifier("fixture.location-status")
+            HStack {
+                Button(locationState.isTracking ? "Stop tracking" : "Track location") {
+                    if locationState.isTracking { locationState.stop() }
+                    else { locationState.start() }
+                }
+                .accessibilityIdentifier("fixture.location-track")
+                Text("Location: \(locationState.coordinate) · \(locationState.updateCount) updates")
+                    .accessibilityIdentifier("fixture.location-coordinate")
+            }
             Spacer()
         }
         .padding(30)
         .onOpenURL { lastLink = $0.absoluteString }
-        .onAppear { refreshLocationPermission() }
-    }
-
-    private func refreshLocationPermission() {
-        switch locationManager.authorizationStatus {
-        case .notDetermined: locationStatus = "not determined"
-        case .restricted: locationStatus = "restricted"
-        case .denied: locationStatus = "denied"
-        case .authorizedAlways: locationStatus = "always"
-        case .authorizedWhenInUse: locationStatus = "when in use"
-        @unknown default: locationStatus = "unknown"
-        }
+        .onAppear { locationState.readPermission() }
+        .onDisappear { locationState.stop() }
     }
 }
