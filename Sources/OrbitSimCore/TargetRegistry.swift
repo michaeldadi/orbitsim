@@ -29,12 +29,17 @@ public struct TargetRegistry: Sendable {
         throw OrbitSimError.targetNotFound(id)
     }
 
-    public func screenshot(_ id: String, to destination: URL, display: String? = nil) async throws {
+    public func screenshot(
+        _ id: String, to destination: URL, display: String? = nil,
+        format: ScreenshotFormat = .png
+    ) async throws {
         switch try await resolve(id).kind {
-        case .simulator: try await simulators.screenshot(id, to: destination, display: display)
+        case .simulator: try await simulators.screenshot(id, to: destination, display: display, format: format)
         case .physical:
-            guard display == nil else {
-                throw OrbitSimError.unsupportedAction("Display selection is not available for physical-device screenshots yet")
+            guard display == nil, format == .png else {
+                throw OrbitSimError.unsupportedAction(
+                    "Physical-device screenshots currently support only PNG without display selection"
+                )
             }
             try await physicalDevices.screenshot(id, to: destination)
         }

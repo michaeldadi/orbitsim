@@ -13,7 +13,7 @@ Run `orbitsim targets --json` and use the exact target ID supplied or selected b
 
 ## Current commands
 
-- Capture a PNG: `orbitsim screenshot --target <id> --output <new-file.png>`. The CLI refuses to overwrite an existing file.
+- Capture a PNG: `orbitsim screenshot --target <id> --output <new-file.png>`. Simulator output also accepts `--type jpeg|tiff|bmp|gif` with a matching file extension. The CLI refuses to overwrite an existing file.
 - Record a bounded Simulator clip: `orbitsim record --target <id> --output <new-file.mp4> --seconds <1-120>`.
 - Inspect a visible Simulator: `orbitsim elements --target <id> --json`. Text values are omitted unless the user requests them and `--include-text` is passed.
 - Press an identified control: `orbitsim interact --target <id> --element <accessibility-id> --action press`.

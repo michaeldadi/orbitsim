@@ -11,7 +11,7 @@ Baseline: RocketSim 16.8.0 installed on macOS 27.2; public documentation reviewe
 | F04 | CLI install and version matching | macOS | app bundled CLI and symlink | Upgrade app; `orbitsim version` and schema match | incomplete |
 | F05 | Simulator PNG screenshot | S | `simctl io screenshot` | Capture selected booted S, inspect dimensions, preserve existing file | verified (CLI) |
 | F05c | Live Simulator window preview | S | ScreenCaptureKit window stream | Explicitly select one visible window, preview live frames, stop cleanly, handle permission denial | incomplete (private stream proof received 146 frames in 3 seconds; app permission and UI stream unverified) |
-| F05b | Other screenshot formats and devices | S/P | `simctl io`/`devicectl capture`, Image I/O | Capture P and JPEG, alternate displays, rotation | incomplete |
+| F05b | Other screenshot formats and devices | S/P | `simctl io`/`devicectl capture`, Image I/O | Capture P and JPEG, alternate displays, rotation | incomplete (Simulator JPEG 1206×2622 verified; other formats and physical device pending) |
 | F06 | Floating capture thumbnail and drag/copy | S/P | AppKit pasteboard and drag | Capture then drag and copy to Finder and editor | incomplete |
 | F07 | Bounded MP4 recording | S | `simctl io recordVideo` | Record selected S; finalize valid video after SIGINT | verified (CLI, 2-second request yielded 1.58-second playable track) |
 | F07b | Interactive MP4 recording | S/P | capture session and controls | Start/stop on demand, physical device, graceful disconnect | incomplete |

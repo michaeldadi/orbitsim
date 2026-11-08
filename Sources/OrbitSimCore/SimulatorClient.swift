@@ -49,9 +49,19 @@ public struct SimulatorClient: Sendable {
         _ = try await run(["shutdown", id], timeoutSeconds: 90)
     }
 
-    public func screenshot(_ id: String, to destination: URL, display: String? = nil) async throws {
-        try Self.checkDestination(destination, extension: "png")
-        var arguments = ["io", id, "screenshot"]
+    public func screenshot(
+        _ id: String, to destination: URL, display: String? = nil,
+        format: ScreenshotFormat = .png
+    ) async throws {
+        guard destination.isFileURL, format.fileExtensions.contains(destination.pathExtension.lowercased()) else {
+            throw OrbitSimError.invalidArgument(
+                "Output extension must match screenshot type \(format.rawValue)"
+            )
+        }
+        if FileManager.default.fileExists(atPath: destination.path) {
+            throw OrbitSimError.destinationExists(destination.path)
+        }
+        var arguments = ["io", id, "screenshot", "--type=\(format.rawValue)"]
         if let display {
             guard !display.isEmpty, !display.hasPrefix("-") else {
                 throw OrbitSimError.invalidArgument("Display identifier is invalid")
@@ -196,6 +206,20 @@ public struct SimulatorClient: Sendable {
 
 public enum PrivacyAction: String, Sendable {
     case grant, revoke, reset
+}
+
+public enum ScreenshotFormat: String, Sendable {
+    case png, jpeg, tiff, bmp, gif
+
+    var fileExtensions: Set<String> {
+        switch self {
+        case .jpeg: ["jpg", "jpeg"]
+        case .tiff: ["tif", "tiff"]
+        case .png: ["png"]
+        case .bmp: ["bmp"]
+        case .gif: ["gif"]
+        }
+    }
 }
 
 public enum PrivacyService: String, Sendable {
