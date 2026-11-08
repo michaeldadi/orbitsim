@@ -2,7 +2,6 @@ import SwiftUI
 
 struct SettingsView: View {
     let updatesConfigured: Bool
-    @AppStorage("launchAtLogin") private var launchAtLogin = false
     @AppStorage("showPhysicalDevices") private var showPhysicalDevices = true
 
     var body: some View {

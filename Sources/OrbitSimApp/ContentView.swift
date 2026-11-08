@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var longitudeText = ""
     @State private var statusTime = ""
     @State private var batteryText = ""
+    @AppStorage("showPhysicalDevices") private var showPhysicalDevices = true
 
     var body: some View {
         NavigationSplitView {
@@ -21,9 +22,11 @@ struct ContentView: View {
                         TargetRow(target: target).tag(target.id)
                     }
                 }
-                Section("Devices") {
-                    ForEach(model.targets.filter { $0.kind == .physical }) { target in
-                        TargetRow(target: target).tag(target.id)
+                if showPhysicalDevices {
+                    Section("Devices") {
+                        ForEach(model.targets.filter { $0.kind == .physical }) { target in
+                            TargetRow(target: target).tag(target.id)
+                        }
                     }
                 }
             }
@@ -57,6 +60,11 @@ struct ContentView: View {
         }
         .task { await model.refresh() }
         .task(id: model.selectedTargetID) { await model.refreshDisplays() }
+        .onChange(of: showPhysicalDevices) { _, visible in
+            if !visible, model.selectedTarget?.kind == .physical {
+                model.selectedTargetID = nil
+            }
+        }
     }
 
     @ViewBuilder
