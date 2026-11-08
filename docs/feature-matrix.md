@@ -9,7 +9,7 @@ Baseline: RocketSim 16.8.0 installed on macOS 27.2; public documentation reviewe
 | F02 | Context-aware side window | S/P | AppKit window tracking | Window follows focused Simulator/device through move, resize, disconnect | incomplete |
 | F03 | Menu bar and settings | macOS | SwiftUI/AppKit | Open, refresh, configure, and quit with VoiceOver | incomplete (shell built) |
 | F04 | CLI install and version matching | macOS | app bundled CLI and symlink | Upgrade app; `orbitsim version` and schema match | incomplete |
-| F05 | Simulator PNG screenshot | S | `simctl io screenshot` | Capture selected booted S, inspect dimensions, preserve existing file | verified (CLI) |
+| F05 | Simulator PNG screenshot | S | `simctl io screenshot` | Capture selected booted S, inspect dimensions, preserve existing file | verified (CLI and native Save panel; iPhone 17 Pro fixture PNG measured 1206 × 2622) |
 | F05c | Live Simulator window preview | S | ScreenCaptureKit window stream | Explicitly select one visible window, preview live frames, stop cleanly, handle permission denial | verified (native preview updated from fixture tap count 1 to 2; stopped cleanly; permission denial previously observed) |
 | F05b | Other screenshot formats and devices | S/P | `simctl io`/`devicectl capture`, Image I/O | Capture P and JPEG, alternate displays, rotation | incomplete (Simulator JPEG and paired iPhone PNG at 1206×2622; Duo displays 1 and 3 captured at their distinct pixel sizes; rotation pending) |
 | F06 | Floating capture thumbnail and drag/copy | S/P | AppKit pasteboard and drag | Capture then drag and copy to Finder and editor | incomplete |
