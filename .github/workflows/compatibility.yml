@@ -29,6 +29,11 @@ jobs:
           xcodebuild -quiet -project OrbitSim.xcodeproj -scheme OrbitSim \
             -configuration Debug -destination 'platform=macOS' \
             -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
+      - name: Simulator fixture build
+        run: |
+          xcodebuild -quiet -project OrbitSim.xcodeproj -scheme OrbitFixture \
+            -configuration Debug -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
       - name: Bundle checks
         run: |
           plutil -lint DerivedData/Build/Products/Debug/OrbitSim.app/Contents/Info.plist

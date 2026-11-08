@@ -5,11 +5,13 @@ OrbitSim is an independent macOS workbench for iOS Simulator and paired-device t
 ## Current capabilities
 
 - Native SwiftUI window and menu bar entry point.
+- Live Simulator window preview built with ScreenCaptureKit and an explicit window picker. The capture stream worked in a local proof; the app needs Screen Recording permission before its UI path can be verified.
 - Discover installed Simulators and paired devices by stable ID.
 - Capture a PNG from a booted Simulator (verified on iPhone 17 Pro, iOS 26.4.1).
 - Record a bounded MP4 from a booted Simulator; a two-second request produced a valid 1.58-second video track. Startup time is excluded from the recorded footage.
 - CLI adapters for Simulator boot, shutdown, appearance, location, app install/launch/terminate, media, push, privacy, status bar, and display enumeration. Most actions are built but still need integration verification.
 - Physical-device screenshot, app install/launch, and URL actions through `devicectl`, pending a connected device test.
+- Visible Simulator accessibility identifiers, press, and wait through Device Hub's macOS Accessibility bridge. Verified on the included iOS fixture app; text is omitted from CLI output unless `--include-text` is requested. This path needs Accessibility permission and a uniquely matched visible Simulator window.
 - Read-only build statistics from Xcode build log manifests, available through `orbitsim builds` and a native Build Insights window. Detailed build-step analysis is pending.
 
 ## Requirements
@@ -25,6 +27,8 @@ xcodebuild -project OrbitSim.xcodeproj -scheme OrbitSim -configuration Debug -de
 ```
 
 Run `./.build/debug/orbitsim help` for CLI usage. Mutating commands require a specific target ID from `orbitsim targets`; OrbitSim deliberately never chooses an arbitrary booted Simulator. The Xcode project uses the Xcode 27 JSON `.xcproj` format. Do not run XcodeGen on it.
+
+`OrbitFixture` is an included iOS Simulator test app with stable accessibility identifiers and a `orbitsimfixture://` URL scheme. Build it with the `OrbitFixture` Xcode scheme, then use it to test lifecycle, links, and agent commands on a disposable Simulator.
 
 ## Development boundaries
 

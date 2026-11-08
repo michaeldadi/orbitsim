@@ -4,12 +4,13 @@ Baseline: RocketSim 16.8.0 installed on macOS 27.2; public documentation reviewe
 
 | ID | Individual workflow | Target | OrbitSim path / dependency | Acceptance test | Status |
 | --- | --- | --- | --- | --- | --- |
-| F01 | Target discovery and explicit selection | S/P | `simctl`/`devicectl`, registry | Discover one booted S and one paired P; require ID for actions | verified (CLI) |
+| F01 | Target discovery and explicit selection | S/P | `simctl`/`devicectl`, registry | Discover one booted S and one paired P; require ID for actions | verified (CLI; app starts with no selection) |
 | F01b | Concurrent target focus | S/P | registry and window tracker | Distinguish two booted Simulators and focused device | incomplete |
 | F02 | Context-aware side window | S/P | AppKit window tracking | Window follows focused Simulator/device through move, resize, disconnect | incomplete |
 | F03 | Menu bar and settings | macOS | SwiftUI/AppKit | Open, refresh, configure, and quit with VoiceOver | incomplete (shell built) |
 | F04 | CLI install and version matching | macOS | app bundled CLI and symlink | Upgrade app; `orbitsim version` and schema match | incomplete |
 | F05 | Simulator PNG screenshot | S | `simctl io screenshot` | Capture selected booted S, inspect dimensions, preserve existing file | verified (CLI) |
+| F05c | Live Simulator window preview | S | ScreenCaptureKit window stream | Explicitly select one visible window, preview live frames, stop cleanly, handle permission denial | incomplete (private stream proof received 146 frames in 3 seconds; app permission and UI stream unverified) |
 | F05b | Other screenshot formats and devices | S/P | `simctl io`/`devicectl capture`, Image I/O | Capture P and JPEG, alternate displays, rotation | incomplete |
 | F06 | Floating capture thumbnail and drag/copy | S/P | AppKit pasteboard and drag | Capture then drag and copy to Finder and editor | incomplete |
 | F07 | Bounded MP4 recording | S | `simctl io recordVideo` | Record selected S; finalize valid video after SIGINT | verified (CLI, 2-second request yielded 1.58-second playable track) |
@@ -28,9 +29,9 @@ Baseline: RocketSim 16.8.0 installed on macOS 27.2; public documentation reviewe
 | F19 | Magnifier and color picker | S/P | capture sample / AppKit | Copy sampled value in supported code formats | incomplete |
 | F20 | Slow animations | S | Simulator control proof | Enable, disable, restore state on exit | incomplete |
 | F21 | Simulator boot/shutdown | S | `simctl` | Boot and shut down specific disposable target | incomplete (boot verified via `simctl`, not CLI) |
-| F22 | App install, launch, terminate, uninstall | S/P | `simctl`/`devicectl` | Lifecycle fixture app on both target types | incomplete (adapters built) |
+| F22 | App install, launch, terminate, uninstall | S/P | `simctl`/`devicectl` | Lifecycle fixture app on both target types | incomplete (Simulator install and launch verified on OrbitFixture; other actions and physical device pending) |
 | F23 | Recent builds and relaunch | S/P | DerivedData index, lifecycle adapter | Select right app from two Xcode projects | incomplete |
-| F24 | Deep and Universal Links | S/P | `simctl openurl`/`devicectl` | Open fixture link with chooser and fallback | incomplete (adapters built) |
+| F24 | Deep and Universal Links | S/P | `simctl openurl`/`devicectl` | Open fixture link with chooser and fallback | incomplete (Simulator custom URL verified after Open prompt; Universal Link and physical device pending) |
 | F25 | Simulated push notification | S | `simctl push` | Deliver valid payload; reject invalid payload | incomplete (adapter and invalid-payload test) |
 | F26 | Fixed location | S | `simctl location` | Set valid coordinates then clear | verified (CLI) |
 | F26b | Routes and time zone | S/P | `simctl location`/device tools | Drive route and restore prior state | incomplete |
@@ -47,9 +48,9 @@ Baseline: RocketSim 16.8.0 installed on macOS 27.2; public documentation reviewe
 | F35 | Speed throttle and airplane mode | S | Network Extension or debug transport | Show per-app latency/loss and restoration | incomplete |
 | F36 | Basic build log statistics | macOS | Xcode `LogStoreManifest.plist` reader | Parse scheme, duration, status, errors, warnings and p75/p95 from fixture and real log | verified (CLI and fixture test; native view built) |
 | F36b | Full build insights and trends | macOS | activity-log parser / SQLite | Classify clean/incremental, plot history, show step-level timing | incomplete |
-| F37 | Accessibility tree and element highlight | S | accessibility adapter / XCUITest fallback | Read identifiers, frames, labels; highlight visible controls | incomplete |
+| F37 | Accessibility tree and element highlight | S | Device Hub Accessibility bridge | Read identifiers, frames, labels; highlight visible controls | incomplete (CLI read six fixture identifiers; frame/highlight pending) |
 | F38 | VoiceOver Navigator and audit | S | accessibility test runner | Navigate fixture, export actionable findings | incomplete |
-| F39 | Agent elements/interact/wait | S | local socket and approved input adapter | Semantic tap/type/wait with stale-target and timeout behavior | incomplete |
+| F39 | Agent elements/interact/wait | S | Device Hub Accessibility bridge and future local socket | Semantic tap/type/wait with stale-target and timeout behavior | incomplete (CLI elements, press and wait verified on fixture; type, gesture, stale-target and IPC pending) |
 | F40 | Agent screenshots/recording/doctor | S | CLI and app IPC | Stable machine-readable schema and errors | incomplete (CLI screenshot/doctor partial) |
 | F41 | Browser preview and remote control | S | local HTTP/WebSocket with token | Localhost default; explicit time-limited LAN sharing | incomplete |
 | F42 | Physical-device live preview | P | USB stream / ScreenCaptureKit proof | Preview at physical, point, pixel, fit scales | incomplete |

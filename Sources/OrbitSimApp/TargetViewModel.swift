@@ -22,8 +22,11 @@ final class TargetViewModel {
         defer { isBusy = false }
         do {
             targets = try await registry.allTargets()
-            if selectedTargetID == nil || selectedTarget == nil {
-                selectedTargetID = targets.first(where: { $0.state == .booted })?.id ?? targets.first?.id
+            // Actions must always be tied to a target the user selected. If the
+            // selected device disappears, clear the selection instead of silently
+            // redirecting an action to another booted Simulator.
+            if selectedTargetID != nil && selectedTarget == nil {
+                selectedTargetID = nil
             }
             error = nil
         } catch {

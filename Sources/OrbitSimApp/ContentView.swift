@@ -4,6 +4,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct ContentView: View {
+    @Environment(\.openWindow) private var openWindow
     var model: TargetViewModel
     @State private var deepLink = ""
     @State private var bundleID = ""
@@ -84,6 +85,10 @@ struct ContentView: View {
                     }
                     .disabled(target.state != .booted && target.state != .connected)
                     if target.kind == .simulator {
+                        actionCard("Live Preview", symbol: "play.rectangle", detail: "Watch a selected Simulator window") {
+                            openWindow(id: "preview")
+                        }
+                        .disabled(target.state != .booted)
                         actionCard("Record", symbol: "record.circle", detail: "Save a 10-second MP4 clip") {
                             saveRecording(target)
                         }

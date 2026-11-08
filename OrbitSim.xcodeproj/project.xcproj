@@ -26,7 +26,15 @@
         { "path": "Info.plist" },
         { "path": "OrbitSimApp.swift", "target-membership": [ "OrbitSim/compile-sources" ] },
         { "path": "SettingsView.swift", "target-membership": [ "OrbitSim/compile-sources" ] },
+        { "path": "SimulatorWindowPreview.swift", "target-membership": [ "OrbitSim/compile-sources" ] },
         { "path": "TargetViewModel.swift", "target-membership": [ "OrbitSim/compile-sources" ] },
+      ],
+    }, {
+      "kind": "group",
+      "path": "Fixtures/OrbitFixture",
+      "children": [
+        { "path": "Info.plist" },
+        { "path": "OrbitFixtureApp.swift", "target-membership": [ "OrbitFixture/compile-sources" ] },
       ],
     }, {
       "kind": "group",
@@ -39,6 +47,7 @@
       "name": "Products",
       "children": [
         { "path": "<PRODUCTS>/OrbitSim.app", "id": "74A62655784FAE771355DF7A", "type": "wrapper.application", "index": false },
+        { "path": "<PRODUCTS>/OrbitFixture.app", "id": "C979D432AE2240BAA860E124", "type": "wrapper.application", "index": false },
       ],
     },
   ],
@@ -73,6 +82,21 @@
         "PRODUCT_BUNDLE_IDENTIFIER": "io.github.michaeldadi.orbitsim",
         "PRODUCT_NAME": "OrbitSim",
         "SDKROOT": "macosx",
+      },
+    }, {
+      "name": "OrbitFixture",
+      "id": "1A69B9C3876E4D0B900CA4B1",
+      "product": "Products/OrbitFixture.app",
+      "product-type": "application",
+      "build-phases": ["compile-sources", "frameworks"],
+      "build-settings": {
+        "INFOPLIST_FILE": "Fixtures/OrbitFixture/Info.plist",
+        "IPHONEOS_DEPLOYMENT_TARGET": "26.4",
+        "PRODUCT_BUNDLE_IDENTIFIER": "io.github.michaeldadi.orbitsim.fixture",
+        "PRODUCT_NAME": "OrbitFixture",
+        "SDKROOT": "iphoneos",
+        "SUPPORTED_PLATFORMS": ["iphoneos", "iphonesimulator"],
+        "TARGETED_DEVICE_FAMILY": "1,2",
       },
     },
   ],

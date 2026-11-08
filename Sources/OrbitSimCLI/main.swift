@@ -68,6 +68,33 @@ struct OrbitSimCommand {
                     print("\(target.kind.rawValue)\t\(target.state.rawValue)\t\(target.name)\t\(target.id)")
                 }
             }
+        case "elements":
+            let id = try required("--target", in: arguments)
+            let elements = try await AccessibilityClient().elements(
+                targetID: id, includeText: arguments.contains("--include-text")
+            )
+            if arguments.contains("--json") {
+                let encoder = JSONEncoder()
+                encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+                print(String(decoding: try encoder.encode(elements), as: UTF8.self))
+            } else {
+                for element in elements {
+                    print("\(element.identifier)\t\(element.role)\t\(element.text ?? "")")
+                }
+            }
+        case "interact":
+            let id = try required("--target", in: arguments)
+            let identifier = try required("--element", in: arguments)
+            guard try required("--action", in: arguments) == "press" else {
+                throw OrbitSimError.invalidArgument("Only --action press is supported")
+            }
+            try await AccessibilityClient().press(targetID: id, identifier: identifier)
+        case "wait":
+            let id = try required("--target", in: arguments)
+            let identifier = try required("--element", in: arguments)
+            let seconds = Double(try required("--seconds", in: arguments)) ?? 0
+            try await AccessibilityClient().wait(targetID: id, identifier: identifier,
+                                                 timeoutSeconds: seconds)
         case "screenshot":
             let id = try required("--target", in: arguments)
             let output = try required("--output", in: arguments)
@@ -231,6 +258,9 @@ struct OrbitSimCommand {
 
         Usage:
           orbitsim targets [--json]
+          orbitsim elements --target <simulator-id> [--json] [--include-text]
+          orbitsim interact --target <simulator-id> --element <accessibility-id> --action press
+          orbitsim wait --target <simulator-id> --element <accessibility-id> --seconds <0.1-60>
           orbitsim status [--json]
           orbitsim builds [--root <DerivedData-directory>] [--json]
           orbitsim screenshot --target <id> --output <file.png> [--display <id>]

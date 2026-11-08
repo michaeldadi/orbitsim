@@ -21,6 +21,13 @@ struct OrbitSimApp: App {
         }
         .defaultSize(width: 820, height: 560)
 
+        Window("Simulator Preview", id: "preview") {
+            SimulatorWindowPreview(target: model.selectedTarget)
+                .id(model.selectedTargetID)
+                .frame(minWidth: 640, minHeight: 520)
+        }
+        .defaultSize(width: 760, height: 680)
+
         MenuBarExtra("OrbitSim", systemImage: "circle.hexagongrid.fill") {
             StatusMenu(model: model, updates: updates)
         }
