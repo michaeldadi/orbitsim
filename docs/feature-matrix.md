@@ -15,7 +15,7 @@ Baseline: RocketSim 16.8.0 installed on macOS 27.2; public documentation reviewe
 | F06 | Floating capture thumbnail and drag/copy | S/P | SwiftUI floating window, pasteboard, drag | Capture then drag and copy to Finder and editor | incomplete (native floating shelf opened with fixture screenshot; drag, copy, Finder handoff, and physical-device capture need live checks) |
 | F07 | Bounded MP4 recording | S | `simctl io recordVideo` | Record selected S; finalize valid video after SIGINT | verified (CLI, 2-second request yielded 1.58-second playable track) |
 | F07b | Interactive MP4 recording | S/P | capture session and controls | Start/stop on demand, physical device, graceful disconnect | incomplete |
-| F08 | GIF recording | S/P | capture pipeline and Image I/O | Export animated GIF with expected frame timing | incomplete |
+| F08 | GIF recording | S/P | bounded `simctl` movie plus AVFoundation/Image I/O | Export animated GIF with expected frame timing | incomplete (Simulator CLI and native exports verified; 39 changing frames at 10 FPS in fixture, 48 frames from native app; physical device and edit controls pending) |
 | F09 | Eligible 120 FPS capture | S | source timing and encoder | Measure sustained 120 FPS on eligible target | incomplete |
 | F10 | Simulator and device audio | S/P | capture source / AVFoundation | Record and play synced system audio | incomplete |
 | F11 | Microphone voiceover | S/P | AVFoundation permission and mix | Record mic + screen audio without drift | incomplete |

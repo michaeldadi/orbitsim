@@ -33,7 +33,8 @@ public struct SimulatorVideoRecorder: Sendable {
         try await Task.detached(priority: .userInitiated) {
             let temporary = FileManager.default.temporaryDirectory
                 .appendingPathComponent("orbitsim-record-\(UUID().uuidString).log")
-            FileManager.default.createFile(atPath: temporary.path, contents: nil)
+            FileManager.default.createFile(atPath: temporary.path, contents: nil,
+                                           attributes: [.posixPermissions: 0o600])
             defer { try? FileManager.default.removeItem(at: temporary) }
             let log = try FileHandle(forWritingTo: temporary)
             defer { try? log.close() }

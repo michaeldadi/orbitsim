@@ -83,6 +83,20 @@ final class TargetViewModel {
         }
     }
 
+    func recordGIF(to destination: URL) async {
+        guard let target = selectedTarget, target.kind == .simulator else { return }
+        if needsDisplaySelection {
+            error = "Choose a display before recording this Simulator."
+            return
+        }
+        let display = selectedDisplayID
+        await run("Saved GIF to \(destination.lastPathComponent)") {
+            try await SimulatorGIFRecorder().record(targetID: target.id, to: destination,
+                                                    durationSeconds: 5, framesPerSecond: 10,
+                                                    display: display)
+        }
+    }
+
     func refreshDisplays() async {
         displays = []
         selectedDisplayID = nil

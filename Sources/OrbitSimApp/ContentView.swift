@@ -170,6 +170,7 @@ struct ContentView: View {
                             Button("Light") { Task { await model.setAppearance(dark: false) } }
                             Button("Dark") { Task { await model.setAppearance(dark: true) } }
                             Button("Import Media…") { selectMedia() }
+                            Button("Record GIF…") { saveGIF(target) }
                             Button("Send Push…") { selectPushPayload() }
                                 .disabled(bundleID.isEmpty)
                             Spacer()
@@ -299,6 +300,18 @@ struct ContentView: View {
             return
         }
         Task { await model.recordVideo(to: url) }
+    }
+
+    private func saveGIF(_ target: DeviceTarget) {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.gif]
+        panel.nameFieldStringValue = "OrbitSim_\(target.name.replacingOccurrences(of: " ", with: "_"))_\(Date.now.formatted(.iso8601.year().month().day())).gif"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        if FileManager.default.fileExists(atPath: url.path) {
+            model.error = "Choose a new filename for this GIF."
+            return
+        }
+        Task { await model.recordGIF(to: url) }
     }
 }
 

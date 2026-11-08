@@ -141,6 +141,20 @@ struct OrbitSimCommand {
                                                       durationSeconds: seconds, codec: codec,
                                                       display: optional("--display", in: arguments))
             print(destination.path)
+        case "gif":
+            let id = try required("--target", in: arguments)
+            try await requireSimulator(id, registry: registry)
+            let output = try required("--output", in: arguments)
+            let secondsText = try required("--seconds", in: arguments)
+            let fpsText = optional("--fps", in: arguments) ?? "10"
+            guard let seconds = Int(secondsText), let fps = Int(fpsText) else {
+                throw OrbitSimError.invalidArgument("--seconds and --fps must be integers")
+            }
+            let destination = URL(fileURLWithPath: output).standardizedFileURL
+            try await SimulatorGIFRecorder().record(targetID: id, to: destination,
+                                                     durationSeconds: seconds, framesPerSecond: fps,
+                                                     display: optional("--display", in: arguments))
+            print(destination.path)
         case "install":
             let id = try required("--target", in: arguments)
             let app = URL(fileURLWithPath: try required("--app", in: arguments)).standardizedFileURL
@@ -295,6 +309,7 @@ struct OrbitSimCommand {
           orbitsim builds [--root <DerivedData-directory>] [--history] [--history-file <sqlite-file>] [--json]
           orbitsim screenshot --target <id> --output <file> [--type png|jpeg|tiff|bmp|gif] [--display <id>]
           orbitsim record --target <simulator-id> --output <file.mp4|file.mov> --seconds <1-120> [--codec h264|hevc] [--display <id>]
+          orbitsim gif --target <simulator-id> --output <file.gif> --seconds <1-30> [--fps <1-10>] [--display <id>]
           orbitsim install --target <id> --app <file.app>
           orbitsim launch --target <id> --bundle <bundle-id>
           orbitsim uninstall --target <id> --bundle <bundle-id>
