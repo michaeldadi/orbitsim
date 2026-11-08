@@ -5,9 +5,9 @@ import OrbitSimCore
 import ScreenCaptureKit
 import SwiftUI
 
-struct SimulatorWindowPreview: View {
+struct DeviceWindowPreview: View {
     let target: DeviceTarget?
-    @State private var model = SimulatorWindowPreviewModel()
+    @State private var model = DeviceWindowPreviewModel()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -22,11 +22,11 @@ struct SimulatorWindowPreview: View {
             }
 
             if model.isRefreshing {
-                ProgressView("Looking for Simulator windows and capture access…")
+                ProgressView("Looking for device windows and capture access…")
             }
 
-            if let target, target.kind == .simulator {
-                Text("Select the visible Simulator window for \(target.name). Window capture requires macOS Screen Recording access.")
+            if let target {
+                Text("Select the visible Device Hub window for \(target.name). Window capture requires macOS Screen Recording access.")
                     .foregroundStyle(.secondary)
                 Picker("Window", selection: Bindable(model).selectedWindowID) {
                     Text("Choose a window").tag(nil as CGWindowID?)
@@ -45,11 +45,11 @@ struct SimulatorWindowPreview: View {
                     }
                     .disabled(!model.isRunning && model.selectedWindowID == nil)
                     Spacer()
-                    Text(model.isRunning ? "Capturing selected window" : "Preview stopped")
+                    Text(model.isRunning ? "Capturing selected window · \(model.framesReceived) frames" : "Preview stopped")
                         .foregroundStyle(.secondary)
                 }
             } else {
-                ContentUnavailableView("Select a Simulator", systemImage: "iphone")
+                ContentUnavailableView("Select a target", systemImage: "iphone")
             }
 
             if let error = model.error {
@@ -85,21 +85,23 @@ private struct PreviewWindow: Identifiable {
 
 @MainActor
 @Observable
-private final class SimulatorWindowPreviewModel {
+private final class DeviceWindowPreviewModel {
     var windows: [PreviewWindow] = []
     var selectedWindowID: CGWindowID?
     var frame: CGImage?
     var error: String?
     var isRunning = false
     var isRefreshing = false
+    var framesReceived = 0
 
     @ObservationIgnored private var candidates: [CGWindowID: SCWindow] = [:]
     @ObservationIgnored private var stream: SCStream?
     @ObservationIgnored private var receiver: PreviewFrameReceiver?
+    @ObservationIgnored private var sourceMonitor: Task<Void, Never>?
 
     func refreshWindows(for target: DeviceTarget?) async {
         guard !isRefreshing else { return }
-        guard let target, target.kind == .simulator else {
+        guard let target, target.state == .booted || target.state == .connected else {
             windows = []
             selectedWindowID = nil
             return
@@ -119,7 +121,7 @@ private final class SimulatorWindowPreviewModel {
             if let selectedWindowID, candidates[selectedWindowID] == nil {
                 self.selectedWindowID = nil
             }
-            error = windows.isEmpty ? "Open this Simulator in Device Hub, then refresh windows." : nil
+            error = windows.isEmpty ? "Open this target in Device Hub, then refresh windows." : nil
         } catch {
             self.error = Self.captureErrorDescription(error)
         }
@@ -131,6 +133,7 @@ private final class SimulatorWindowPreviewModel {
             return
         }
         do {
+            framesReceived = 0
             let configuration = SCStreamConfiguration()
             configuration.width = max(1, Int(window.frame.width * 2))
             configuration.height = max(1, Int(window.frame.height * 2))
@@ -138,7 +141,10 @@ private final class SimulatorWindowPreviewModel {
             configuration.queueDepth = 3
             let receiver = PreviewFrameReceiver(onFrame: { [weak self] image, delivered in
                 Task { @MainActor [weak self] in
-                    self?.frame = image
+                    if let self, self.isRunning {
+                        self.frame = image
+                        self.framesReceived += 1
+                    }
                     delivered()
                 }
             }, onStop: { [weak self] error in
@@ -147,6 +153,9 @@ private final class SimulatorWindowPreviewModel {
                     self?.isRunning = false
                     self?.stream = nil
                     self?.receiver = nil
+                    self?.sourceMonitor?.cancel()
+                    self?.sourceMonitor = nil
+                    self?.frame = nil
                 }
             })
             let stream = SCStream(
@@ -161,12 +170,40 @@ private final class SimulatorWindowPreviewModel {
             self.stream = stream
             isRunning = true
             error = nil
+            let sourceTitle = window.title
+            sourceMonitor = Task { [weak self] in
+                while !Task.isCancelled {
+                    do { try await Task.sleep(for: .seconds(2)) }
+                    catch { break }
+                    guard let self, self.isRunning else { break }
+                    do {
+                        let content = try await SCShareableContent.current
+                        guard content.windows.contains(where: {
+                            $0.windowID == selectedWindowID &&
+                            $0.owningApplication?.bundleIdentifier == "com.apple.dt.Devices" &&
+                            $0.title == sourceTitle
+                        }) else {
+                            self.error = "Device Hub changed or closed this target. Preview stopped to avoid capturing another device."
+                            self.sourceMonitor = nil
+                            await self.stop()
+                            break
+                        }
+                    } catch {
+                        self.error = Self.captureErrorDescription(error)
+                        self.sourceMonitor = nil
+                        await self.stop()
+                        break
+                    }
+                }
+            }
         } catch {
             self.error = Self.captureErrorDescription(error)
         }
     }
 
     func stop() async {
+        sourceMonitor?.cancel()
+        sourceMonitor = nil
         if let stream {
             do { try await stream.stopCapture() }
             catch { self.error = error.localizedDescription }
@@ -174,6 +211,7 @@ private final class SimulatorWindowPreviewModel {
         stream = nil
         receiver = nil
         isRunning = false
+        frame = nil
     }
 
     private static func captureErrorDescription(_ error: Error) -> String {

@@ -21,8 +21,8 @@ struct OrbitSimApp: App {
         }
         .defaultSize(width: 820, height: 560)
 
-        Window("Simulator Preview", id: "preview") {
-            SimulatorWindowPreview(target: model.selectedTarget)
+        Window("Device Preview", id: "preview") {
+            DeviceWindowPreview(target: model.selectedTarget)
                 .id(model.selectedTargetID)
                 .frame(minWidth: 640, minHeight: 520)
         }

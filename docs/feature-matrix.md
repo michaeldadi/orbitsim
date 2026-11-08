@@ -53,7 +53,7 @@ Baseline: RocketSim 16.8.0 installed on macOS 27.2; public documentation reviewe
 | F39 | Agent elements/interact/wait | S | Device Hub Accessibility bridge and future local socket | Semantic tap/type/wait with stale-target and timeout behavior | incomplete (CLI elements, press, type, wait and timeout verified on fixture; gesture, stale-target and IPC pending) |
 | F40 | Agent screenshots/recording/doctor | S | CLI and app IPC | Stable machine-readable schema and errors | incomplete (CLI screenshot/doctor partial) |
 | F41 | Browser preview and remote control | S | local HTTP/WebSocket with token | Localhost default; explicit time-limited LAN sharing | incomplete |
-| F42 | Physical-device live preview | P | USB stream / ScreenCaptureKit proof | Preview at physical, point, pixel, fit scales | incomplete |
+| F42 | Physical-device live preview | P | USB stream / ScreenCaptureKit proof | Preview at physical, point, pixel, fit scales | incomplete (selected Device Hub window delivered >100 live frames over local network; scale modes and USB pending; stream stops on source switch) |
 | F43 | Physical-device capture with audio | P | `devicectl`/capture pipeline | Screenshot, MP4/GIF/audio and clean disconnect | incomplete (paired iPhone PNG screenshot verified; recording, GIF, audio, and disconnect pending) |
 | F44 | Physical location and time zone | P | `devicectl` capability probe | Set/restore on paired iPhone running iOS 27 | incomplete |
 | F45 | Local retention, redaction, migrations | macOS | SQLite WAL, file store | Bounded queue, redacted export, migration recovery | incomplete (build history has WAL, schema version 1, 0600 file, and retention; capture/network session store pending) |

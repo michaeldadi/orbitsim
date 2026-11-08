@@ -84,11 +84,11 @@ struct ContentView: View {
                         saveScreenshot(target)
                     }
                     .disabled(target.state != .booted && target.state != .connected)
+                    actionCard("Live Preview", symbol: "play.rectangle", detail: "Watch a selected Device Hub window") {
+                        openWindow(id: "preview")
+                    }
+                    .disabled(!canAct)
                     if target.kind == .simulator {
-                        actionCard("Live Preview", symbol: "play.rectangle", detail: "Watch a selected Simulator window") {
-                            openWindow(id: "preview")
-                        }
-                        .disabled(target.state != .booted)
                         actionCard("Record", symbol: "record.circle", detail: "Save a 10-second MP4 clip") {
                             saveRecording(target)
                         }
