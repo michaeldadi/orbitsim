@@ -215,7 +215,7 @@ public enum PrivacyAction: String, Sendable {
 }
 
 public enum ScreenshotFormat: String, Sendable {
-    case png, jpeg, tiff, bmp, gif
+    case png, jpeg, tiff, bmp
 
     var fileExtensions: Set<String> {
         switch self {
@@ -223,7 +223,6 @@ public enum ScreenshotFormat: String, Sendable {
         case .tiff: ["tif", "tiff"]
         case .png: ["png"]
         case .bmp: ["bmp"]
-        case .gif: ["gif"]
         }
     }
 }

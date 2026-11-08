@@ -119,7 +119,7 @@ struct OrbitSimCommand {
             let destination = URL(fileURLWithPath: output).standardizedFileURL
             let type = optional("--type", in: arguments) ?? "png"
             guard let format = ScreenshotFormat(rawValue: type) else {
-                throw OrbitSimError.invalidArgument("--type must be png, jpeg, tiff, bmp, or gif")
+                throw OrbitSimError.invalidArgument("--type must be png, jpeg, tiff, or bmp")
             }
             try await registry.screenshot(id, to: destination,
                                           display: optional("--display", in: arguments), format: format)
@@ -307,7 +307,7 @@ struct OrbitSimCommand {
           orbitsim wait --target <simulator-id> --element <accessibility-id> --seconds <0.1-60>
           orbitsim status [--json]
           orbitsim builds [--root <DerivedData-directory>] [--history] [--history-file <sqlite-file>] [--json]
-          orbitsim screenshot --target <id> --output <file> [--type png|jpeg|tiff|bmp|gif] [--display <id>]
+          orbitsim screenshot --target <id> --output <file> [--type png|jpeg|tiff|bmp] [--display <id>]
           orbitsim record --target <simulator-id> --output <file.mp4|file.mov> --seconds <1-120> [--codec h264|hevc] [--display <id>]
           orbitsim gif --target <simulator-id> --output <file.gif> --seconds <1-30> [--fps <1-10>] [--display <id>]
           orbitsim install --target <id> --app <file.app>
