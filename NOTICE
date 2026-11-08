@@ -1,0 +1,8 @@
+OrbitSim
+Copyright 2026 Michael Dadi
+
+OrbitSim is independently authored. Third-party dependencies retain their
+respective licenses and notices. No RocketSim source code or artwork is included.
+
+Sparkle 2.10.0 is used for signed macOS updates. Its license and bundled
+third-party notices are in licenses/Sparkle-LICENSE.

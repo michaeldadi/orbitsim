@@ -1,0 +1,12 @@
+.build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+.DS_Store
+*.app/
+*.dSYM/
+*.xcarchive/
+*.xcresult/
+*.log
+research/private/
+captures/

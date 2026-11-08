@@ -1,0 +1,58 @@
+name: macOS and Xcode compatibility
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 11 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: xcode-27
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Toolchain
+        run: |
+          sw_vers -productVersion
+          xcodebuild -version
+          swift --version
+      - name: Swift tests
+        run: swift test
+      - name: Native app build
+        run: |
+          xcodebuild -quiet -project OrbitSim.xcodeproj -scheme OrbitSim \
+            -configuration Debug -destination 'platform=macOS' \
+            -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
+      - name: Bundle checks
+        run: |
+          plutil -lint DerivedData/Build/Products/Debug/OrbitSim.app/Contents/Info.plist
+          .build/debug/orbitsim help >/dev/null
+
+  report-compatibility-break:
+    needs: smoke
+    if: >-
+      ${{ always() && needs.smoke.result == 'failure' &&
+          github.event_name == 'schedule' &&
+          github.repository == 'michaeldadi/orbitsim' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Open one redacted compatibility issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title='Compatibility smoke failed on xcode-27'
+          existing=$(gh issue list --state open --limit 100 --json title --jq ".[] | select(.title == \"$title\") | .title")
+          if [ -z "$existing" ]; then
+            gh issue create --title "$title" --body "The scheduled macOS/Xcode smoke test failed. Review the run at $RUN_URL. This issue contains no capture or device data."
+          fi
