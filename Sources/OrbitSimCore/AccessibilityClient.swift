@@ -27,6 +27,8 @@ public struct SimulatorElementFrame: Codable, Sendable {
 /// Reads the accessibility bridge exposed by a visible Device Hub window.
 /// This path requires the caller's macOS Accessibility grant and cannot
 /// operate on headless Simulators or distinguish duplicate booted names.
+/// The screen-container lookup is specific to the observed Xcode 27.2
+/// Device Hub hierarchy and fails closed when that hierarchy changes.
 @MainActor
 public struct AccessibilityClient {
     private let simulators: SimulatorClient
@@ -36,19 +38,21 @@ public struct AccessibilityClient {
     }
 
     public func elements(targetID: String, includeText: Bool = false) async throws -> [SimulatorElement] {
-        let root = try await targetWindow(targetID)
+        let roots = try await targetScreenRoots(targetID)
         var result: [SimulatorElement] = []
-        visit(root) { element in
-            guard let identifier = stringAttribute(element, kAXIdentifierAttribute as String),
-                  !identifier.isEmpty else { return }
-            let role = stringAttribute(element, kAXRoleAttribute as String) ?? "unknown"
-            let text = includeText
-                ? (stringAttribute(element, kAXDescriptionAttribute as String)
-                    ?? stringAttribute(element, kAXValueAttribute as String))
-                : nil
-            if !result.contains(where: { $0.identifier == identifier && $0.role == role && $0.text == text }) {
-                result.append(SimulatorElement(identifier: identifier, role: role,
-                                               text: text, frame: frame(of: element)))
+        for root in roots {
+            visit(root) { element in
+                guard let identifier = stringAttribute(element, kAXIdentifierAttribute as String),
+                      !identifier.isEmpty else { return }
+                let role = stringAttribute(element, kAXRoleAttribute as String) ?? "unknown"
+                let text = includeText
+                    ? (stringAttribute(element, kAXDescriptionAttribute as String)
+                        ?? stringAttribute(element, kAXValueAttribute as String))
+                    : nil
+                if !result.contains(where: { $0.identifier == identifier && $0.role == role && $0.text == text }) {
+                    result.append(SimulatorElement(identifier: identifier, role: role,
+                                                   text: text, frame: frame(of: element)))
+                }
             }
         }
         return result.sorted { $0.identifier < $1.identifier }
@@ -97,7 +101,7 @@ public struct AccessibilityClient {
         throw OrbitSimError.commandTimedOut(tool: "accessibility wait")
     }
 
-    private func targetWindow(_ targetID: String) async throws -> AXUIElement {
+    private func targetScreenRoots(_ targetID: String) async throws -> [AXUIElement] {
         guard AXIsProcessTrusted() else {
             throw OrbitSimError.unsupportedAction(
                 "Enable Accessibility for OrbitSim or orbitsim in System Settings → Privacy & Security → Accessibility"
@@ -141,18 +145,49 @@ public struct AccessibilityClient {
                 "Device Hub must have the matching Simulator row selected before accessibility actions"
             )
         }
-        return window
+        // Device Hub exposes its own toolbar, sidebar, and device actions in
+        // the same window as the simulated app. Anchor to the known screen
+        // container and traverse only its app-content groups. Returning the
+        // whole window would let an agent press a host control by mistake.
+        var screenContainers: [AXUIElement] = []
+        visit(window) { element in
+            guard stringAttribute(element, kAXRoleAttribute as String) == (kAXGroupRole as String),
+                  let children = attribute(element, kAXChildrenAttribute as String) as? [AXUIElement] else {
+                return
+            }
+            let directIDs = Set(children.compactMap {
+                stringAttribute($0, kAXIdentifierAttribute as String)
+            })
+            if directIDs.contains("app.grid.3x3") && directIDs.contains("camera.viewfinder") {
+                screenContainers.append(element)
+            }
+        }
+        guard screenContainers.count == 1,
+              let children = attribute(screenContainers[0], kAXChildrenAttribute as String) as? [AXUIElement] else {
+            throw OrbitSimError.unsupportedAction(
+                "Device Hub's app-screen hierarchy changed; accessibility actions are unavailable"
+            )
+        }
+        let roots = children.filter {
+            stringAttribute($0, kAXRoleAttribute as String) == (kAXGroupRole as String)
+        }
+        guard !roots.isEmpty else {
+            throw OrbitSimError.unsupportedAction("Device Hub has no visible app screen")
+        }
+        return roots
     }
 
     private func uniqueElement(targetID: String, identifier: String) async throws -> AXUIElement {
         guard !identifier.isEmpty else {
             throw OrbitSimError.invalidArgument("An accessibility identifier is required")
         }
-        let root = try await targetWindow(targetID)
+        let roots = try await targetScreenRoots(targetID)
         var matches: [AXUIElement] = []
-        visit(root) { element in
-            guard stringAttribute(element, kAXIdentifierAttribute as String) == identifier else { return }
-            if !matches.contains(where: { CFEqual($0, element) }) { matches.append(element) }
+        for root in roots {
+            visit(root) { element in
+                guard stringAttribute(element, kAXIdentifierAttribute as String) == identifier else { return }
+                if !matches.contains(where: { CFEqual($0, element) }) { matches.append(element) }
+            }
         }
         guard matches.count == 1, let match = matches.first else {
             throw OrbitSimError.unsupportedAction(matches.isEmpty
