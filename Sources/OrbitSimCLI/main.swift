@@ -44,7 +44,18 @@ struct OrbitSimCommand {
                 ?? FileManager.default.homeDirectoryForCurrentUser
                     .appendingPathComponent("Library/Developer/Xcode/DerivedData")
             let index = BuildLogIndex()
-            let records = try index.scan(derivedDataRoot: root)
+            let scanned = try index.scan(derivedDataRoot: root)
+            let records: [BuildRecord]
+            if arguments.contains("--history") {
+                let file = optional("--history-file", in: arguments).map {
+                    URL(fileURLWithPath: $0).standardizedFileURL
+                } ?? BuildHistoryStore.defaultFileURL
+                let store = BuildHistoryStore(fileURL: file)
+                try store.upsert(scanned)
+                records = try store.records(limit: 500)
+            } else {
+                records = scanned
+            }
             let report = BuildReport(records: records, statistics: index.statistics(for: records))
             if arguments.contains("--json") {
                 let encoder = JSONEncoder()
@@ -274,7 +285,7 @@ struct OrbitSimCommand {
           orbitsim interact --target <simulator-id> --element <accessibility-id> --action press|type [--text <value>]
           orbitsim wait --target <simulator-id> --element <accessibility-id> --seconds <0.1-60>
           orbitsim status [--json]
-          orbitsim builds [--root <DerivedData-directory>] [--json]
+          orbitsim builds [--root <DerivedData-directory>] [--history] [--history-file <sqlite-file>] [--json]
           orbitsim screenshot --target <id> --output <file> [--type png|jpeg|tiff|bmp|gif] [--display <id>]
           orbitsim record --target <simulator-id> --output <file.mp4|file.mov> --seconds <1-120> [--codec h264|hevc] [--display <id>]
           orbitsim install --target <id> --app <file.app>

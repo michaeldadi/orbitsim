@@ -47,7 +47,7 @@ Baseline: RocketSim 16.8.0 installed on macOS 27.2; public documentation reviewe
 | F34 | Network filters, cURL, insights | S | indexed event store | Search session, export redacted cURL and trend | incomplete |
 | F35 | Speed throttle and airplane mode | S | Network Extension or debug transport | Show per-app latency/loss and restoration | incomplete |
 | F36 | Basic build log statistics | macOS | Xcode `LogStoreManifest.plist` reader | Parse scheme, duration, status, errors, warnings and p75/p95 from fixture and real log | verified (CLI and fixture test; native view built) |
-| F36b | Full build insights and trends | macOS | activity-log parser / SQLite | Classify clean/incremental, plot history, show step-level timing | incomplete |
+| F36b | Full build insights and trends | macOS | activity-log parser / SQLite | Classify clean/incremental, plot history, show step-level timing | incomplete (bounded SQLite WAL history and aggregate percentiles built; classification and step-level trends pending) |
 | F37 | Accessibility tree and element highlight | S | Device Hub Accessibility bridge | Read identifiers, frames, labels; highlight visible controls | incomplete (CLI read six fixture identifiers; frame/highlight pending) |
 | F38 | VoiceOver Navigator and audit | S | accessibility test runner | Navigate fixture, export actionable findings | incomplete |
 | F39 | Agent elements/interact/wait | S | Device Hub Accessibility bridge and future local socket | Semantic tap/type/wait with stale-target and timeout behavior | incomplete (CLI elements, press, type, wait and timeout verified on fixture; gesture, stale-target and IPC pending) |
@@ -56,7 +56,7 @@ Baseline: RocketSim 16.8.0 installed on macOS 27.2; public documentation reviewe
 | F42 | Physical-device live preview | P | USB stream / ScreenCaptureKit proof | Preview at physical, point, pixel, fit scales | incomplete |
 | F43 | Physical-device capture with audio | P | `devicectl`/capture pipeline | Screenshot, MP4/GIF/audio and clean disconnect | incomplete |
 | F44 | Physical location and time zone | P | `devicectl` capability probe | Set/restore on paired iPhone running iOS 27 | incomplete |
-| F45 | Local retention, redaction, migrations | macOS | SQLite WAL, file store | Bounded queue, redacted export, migration recovery | incomplete |
+| F45 | Local retention, redaction, migrations | macOS | SQLite WAL, file store | Bounded queue, redacted export, migration recovery | incomplete (build history has WAL, schema version 1, 0600 file, and retention; capture/network session store pending) |
 | F46 | Signed automatic updates and rollback | macOS | Developer ID, notarization, Sparkle 2.10.0 | Install two signed versions and recovery build | incomplete (framework integrated; feed and drill pending) |
 | F47 | Xcode/macOS compatibility detection | macOS | scheduled `xcode-27` smoke workflow | Detect new SDK break and open redacted issue | incomplete (first hosted smoke passed; failure issue path untested) |
 

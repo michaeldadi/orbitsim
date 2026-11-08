@@ -13,7 +13,7 @@ OrbitSim is an independent macOS workbench for iOS Simulator and paired-device t
 - CLI adapters for Simulator boot, shutdown, appearance, location, app install/launch/terminate, media, push, privacy, status bar, and display enumeration. Most actions are built but still need integration verification.
 - Physical-device screenshot, app install/launch, and URL actions through `devicectl`, pending a connected device test.
 - Visible Simulator accessibility identifiers, press, type, and wait through Device Hub's macOS Accessibility bridge. Verified on the included iOS fixture app; text is omitted from CLI output unless `--include-text` is requested. This path needs Accessibility permission and a uniquely matched visible Simulator window.
-- Read-only build statistics from Xcode build log manifests, available through `orbitsim builds` and a native Build Insights window. Detailed build-step analysis is pending.
+- Read-only build statistics from Xcode build log manifests, available through `orbitsim builds` and a native Build Insights window. The app retains a bounded local SQLite history in WAL mode; CLI users can opt into that cache with `orbitsim builds --history`. Detailed build-step analysis is pending.
 
 ## Requirements
 

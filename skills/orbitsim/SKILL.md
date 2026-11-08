@@ -21,6 +21,8 @@ Run `orbitsim targets --json` and use the exact target ID supplied or selected b
 - Wait for a control: `orbitsim wait --target <id> --element <accessibility-id> --seconds <0.1-60>`.
 - Use `orbitsim help` for lifecycle, links, location, appearance, privacy, push, status bar, media, builds, and diagnostics.
 
+`orbitsim builds` reads current Xcode manifests without writing a cache. Pass `--history` to update and read the local SQLite history; use `--history-file <path>` when a task calls for an isolated cache.
+
 `elements`, `interact`, and `wait` currently depend on a visible, uniquely matched Simulator in Xcode Device Hub and macOS Accessibility permission for the caller. They do not provide headless control. If the matching window or permission is absent, report that condition; do not fall back to another target.
 
 Captures and element text can contain private data. Keep test artifacts in the location the user requested, avoid printing screen contents in logs, and request `--include-text` only when the task calls for reading it. Do not claim physical-device, network, camera, or full RocketSim Pro parity based on a successful Simulator command.

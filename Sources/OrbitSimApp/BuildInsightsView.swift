@@ -16,12 +16,19 @@ private final class BuildInsightsModel {
         isLoading = true
         defer { isLoading = false }
         do {
-            let records = try await Task.detached(priority: .utility) {
-                try BuildLogIndex().scan(derivedDataRoot: root)
+            let (records, storageWarning) = try await Task.detached(priority: .utility) {
+                let scanned = try BuildLogIndex().scan(derivedDataRoot: root)
+                let store = BuildHistoryStore()
+                do {
+                    try store.upsert(scanned)
+                    return (try store.records(limit: 500), Optional<String>.none)
+                } catch {
+                    return (scanned, Optional("Build history could not be saved: \(error.localizedDescription)"))
+                }
             }.value
             self.records = records
             statistics = BuildLogIndex().statistics(for: records)
-            error = nil
+            error = storageWarning
         } catch {
             self.error = error.localizedDescription
         }
@@ -47,7 +54,7 @@ struct BuildInsightsView: View {
                 Button("Choose DerivedData…") { chooseRoot() }
             }
             HStack(spacing: 14) {
-                metric("Builds", value: "\(model.statistics.count)")
+                metric("Recent builds", value: "\(model.statistics.count)")
                 metric("Median", value: duration(model.statistics.p50Seconds))
                 metric("P75", value: duration(model.statistics.p75Seconds))
                 metric("P95", value: duration(model.statistics.p95Seconds))
