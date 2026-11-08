@@ -10,11 +10,30 @@ final class TargetViewModel {
     var isBusy = false
     var message: String?
     var error: String?
+    var displays: [SimulatorDisplay] = []
+    var selectedDisplayID: String?
+    var displayError: String?
+    var isLoadingDisplays = false
 
     private let registry = TargetRegistry()
 
     var selectedTarget: DeviceTarget? {
         targets.first { $0.id == selectedTargetID }
+    }
+
+    var captureDisplays: [SimulatorDisplay] {
+        let integrated = displays.filter(\.isIntegrated)
+        return integrated.isEmpty ? displays : integrated
+    }
+
+    var needsDisplaySelection: Bool {
+        captureDisplays.count > 1 && selectedDisplayID == nil
+    }
+
+    var canCaptureSelectedTarget: Bool {
+        guard selectedTarget?.kind == .simulator else { return true }
+        return !isLoadingDisplays && displayError == nil &&
+            !captureDisplays.isEmpty && !needsDisplaySelection
     }
 
     func refresh() async {
@@ -29,6 +48,7 @@ final class TargetViewModel {
                 selectedTargetID = nil
             }
             error = nil
+            await refreshDisplays()
         } catch {
             self.error = error.localizedDescription
         }
@@ -36,16 +56,46 @@ final class TargetViewModel {
 
     func screenshot(to destination: URL) async {
         guard let selectedTargetID else { return }
+        if needsDisplaySelection {
+            error = "Choose a display before capturing this Simulator."
+            return
+        }
+        let display = selectedTarget?.kind == .simulator ? selectedDisplayID : nil
         await run("Saved screenshot to \(destination.lastPathComponent)") {
-            try await registry.screenshotReplacing(selectedTargetID, at: destination)
+            try await registry.screenshotReplacing(selectedTargetID, at: destination, display: display)
         }
     }
 
     func recordVideo(to destination: URL) async {
         guard let target = selectedTarget, target.kind == .simulator else { return }
+        if needsDisplaySelection {
+            error = "Choose a display before recording this Simulator."
+            return
+        }
+        let display = selectedDisplayID
         await run("Saved video to \(destination.lastPathComponent)") {
             try await SimulatorVideoRecorder().record(targetID: target.id, to: destination,
-                                                      durationSeconds: 10)
+                                                      durationSeconds: 10, display: display)
+        }
+    }
+
+    func refreshDisplays() async {
+        displays = []
+        selectedDisplayID = nil
+        displayError = nil
+        isLoadingDisplays = false
+        guard let target = selectedTarget, target.kind == .simulator,
+              target.state == .booted else { return }
+        isLoadingDisplays = true
+        defer { if selectedTargetID == target.id { isLoadingDisplays = false } }
+        do {
+            let found = try await registry.simulators.connectedDisplays(target.id)
+            guard selectedTargetID == target.id else { return }
+            displays = found
+            if captureDisplays.count == 1 { selectedDisplayID = captureDisplays[0].id }
+        } catch {
+            guard selectedTargetID == target.id else { return }
+            displayError = error.localizedDescription
         }
     }
 

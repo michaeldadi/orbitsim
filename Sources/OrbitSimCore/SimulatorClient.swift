@@ -163,6 +163,12 @@ public struct SimulatorClient: Sendable {
         try await run(["io", id, "enumerate"]).stdout
     }
 
+    public func connectedDisplays(_ id: String) async throws -> [SimulatorDisplay] {
+        let screens = SimulatorDisplayParser.connectedScreens(in: try await displays(id))
+        guard !screens.isEmpty else { throw OrbitSimError.invalidResponse(tool: "simctl io enumerate") }
+        return screens
+    }
+
     private func run(_ arguments: [String], timeoutSeconds: Double = 30) async throws -> CommandResult {
         let result = try await runner.run(
             executable: "/usr/bin/xcrun",

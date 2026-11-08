@@ -46,14 +46,15 @@ public struct TargetRegistry: Sendable {
     }
 
     /// Used only after the macOS save panel has approved replacement.
-    public func screenshotReplacing(_ id: String, at destination: URL) async throws {
+    public func screenshotReplacing(_ id: String, at destination: URL,
+                                    display: String? = nil) async throws {
         guard destination.isFileURL, destination.pathExtension.lowercased() == "png" else {
             throw OrbitSimError.invalidArgument("Output must be a local .png file")
         }
         let temporary = destination.deletingLastPathComponent()
             .appendingPathComponent(".orbitsim-\(UUID().uuidString).png")
         defer { try? FileManager.default.removeItem(at: temporary) }
-        try await screenshot(id, to: temporary)
+        try await screenshot(id, to: temporary, display: display)
         try Data(contentsOf: temporary).write(to: destination, options: .atomic)
     }
 

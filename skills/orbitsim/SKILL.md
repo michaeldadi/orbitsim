@@ -13,8 +13,8 @@ Run `orbitsim targets --json` and use the exact target ID supplied or selected b
 
 ## Current commands
 
-- Capture a PNG: `orbitsim screenshot --target <id> --output <new-file.png>`. Simulator output also accepts `--type jpeg|tiff|bmp|gif` with a matching file extension. The CLI refuses to overwrite an existing file.
-- Record a bounded Simulator clip: `orbitsim record --target <id> --output <new-file.mp4> --seconds <1-120>`.
+- Capture a PNG: `orbitsim screenshot --target <id> --output <new-file.png>`. Simulator output also accepts `--type jpeg|tiff|bmp|gif` with a matching file extension. The CLI refuses to overwrite an existing file. On a multi-screen Simulator, inspect `orbitsim displays --target <id> --json` and pass the intended `--display <screen-id>`.
+- Record a bounded Simulator clip: `orbitsim record --target <id> --output <new-file.mp4> --seconds <1-120> [--display <screen-id>]`.
 - Inspect a visible Simulator: `orbitsim elements --target <id> --json`. Text values are omitted unless the user requests them and `--include-text` is passed.
 - Press an identified control: `orbitsim interact --target <id> --element <accessibility-id> --action press`.
 - Set an editable field: `orbitsim interact --target <id> --element <accessibility-id> --action type --text <value>`. The text appears in the shell command line; use this only for non-sensitive test input.
@@ -25,4 +25,4 @@ Run `orbitsim targets --json` and use the exact target ID supplied or selected b
 
 `elements`, `interact`, and `wait` currently depend on a visible, uniquely matched Simulator in Xcode Device Hub and macOS Accessibility permission for the caller. They do not provide headless control. If the matching window or permission is absent, report that condition; do not fall back to another target.
 
-Captures and element text can contain private data. Keep test artifacts in the location the user requested, avoid printing screen contents in logs, and request `--include-text` only when the task calls for reading it. Do not claim physical-device, network, camera, or full RocketSim Pro parity based on a successful Simulator command.
+Captures and element text can contain private data. Keep test artifacts in the location the user requested, avoid printing screen contents in logs, and request `--include-text` only when the task calls for reading it. The paired-device PNG and host-window preview have local proofs; physical recording, network, camera, and full RocketSim Pro parity remain incomplete.

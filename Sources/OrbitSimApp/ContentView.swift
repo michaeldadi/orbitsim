@@ -56,6 +56,7 @@ struct ContentView: View {
             }
         }
         .task { await model.refresh() }
+        .task(id: model.selectedTargetID) { await model.refreshDisplays() }
     }
 
     @ViewBuilder
@@ -79,11 +80,29 @@ struct ContentView: View {
                         .foregroundStyle(.cyan)
                 }
 
+                if target.kind == .simulator && target.state == .booted {
+                    if model.isLoadingDisplays {
+                        ProgressView("Discovering displays…")
+                    } else if let displayError = model.displayError {
+                        Label(displayError, systemImage: "exclamationmark.triangle")
+                            .foregroundStyle(.orange)
+                    } else if model.captureDisplays.count > 1 {
+                        Picker("Capture display", selection: Bindable(model).selectedDisplayID) {
+                            Text("Choose a display").tag(nil as String?)
+                            ForEach(model.captureDisplays) { display in
+                                Text("\(display.name) · \(display.pixelWidth) × \(display.pixelHeight)")
+                                    .tag(Optional(display.id))
+                            }
+                        }
+                        .frame(maxWidth: 360, alignment: .leading)
+                    }
+                }
+
                 HStack(spacing: 16) {
                     actionCard("Screenshot", symbol: "camera.viewfinder", detail: "Save a PNG from this target") {
                         saveScreenshot(target)
                     }
-                    .disabled(target.state != .booted && target.state != .connected)
+                    .disabled(!canAct || !model.canCaptureSelectedTarget)
                     actionCard("Live Preview", symbol: "play.rectangle", detail: "Watch a selected Device Hub window") {
                         openWindow(id: "preview")
                     }
@@ -92,7 +111,7 @@ struct ContentView: View {
                         actionCard("Record", symbol: "record.circle", detail: "Save a 10-second MP4 clip") {
                             saveRecording(target)
                         }
-                        .disabled(target.state != .booted)
+                        .disabled(target.state != .booted || !model.canCaptureSelectedTarget)
                     }
                     actionCard("Refresh", symbol: "arrow.clockwise", detail: "Update target state") {
                         Task { await model.refresh() }

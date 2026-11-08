@@ -179,7 +179,14 @@ struct OrbitSimCommand {
         case "displays":
             let id = try required("--target", in: arguments)
             try await requireSimulator(id, registry: registry)
-            print(try await registry.simulators.displays(id))
+            if arguments.contains("--json") {
+                let screens = try await registry.simulators.connectedDisplays(id)
+                let encoder = JSONEncoder()
+                encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+                print(String(decoding: try encoder.encode(screens), as: UTF8.self))
+            } else {
+                print(try await registry.simulators.displays(id))
+            }
         case "open-url":
             let id = try required("--target", in: arguments)
             let text = try required("--url", in: arguments)
@@ -296,7 +303,7 @@ struct OrbitSimCommand {
           orbitsim add-media --target <simulator-id> --file <media-file>
           orbitsim push --target <simulator-id> --bundle <bundle-id> --payload <json-file>
           orbitsim privacy --target <simulator-id> --action grant|revoke|reset --service <service> --bundle <bundle-id>
-          orbitsim displays --target <simulator-id>
+          orbitsim displays --target <simulator-id> [--json]
           orbitsim boot|shutdown --target <simulator-id>
           orbitsim appearance --target <simulator-id> --style dark|light
           orbitsim location --target <id> --latitude <n> --longitude <n>
