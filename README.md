@@ -1,5 +1,7 @@
 # OrbitSim
 
+![OrbitSim app icon](Sources/OrbitSimApp/Assets.xcassets/AppIcon.appiconset/icon-128.png)
+
 OrbitSim is an independent macOS workbench for iOS Simulator and paired-device testing. It is under early development and does **not** yet match RocketSim Pro. The [feature matrix](docs/feature-matrix.md) is the completion contract.
 
 ## Current capabilities
@@ -7,13 +9,13 @@ OrbitSim is an independent macOS workbench for iOS Simulator and paired-device t
 - Native SwiftUI window and menu bar entry point.
 - Live Device Hub window preview for a selected Simulator or connected device, with an explicit window picker. The native stream was verified on both target types; it stops if Device Hub switches targets. This is a host-window preview, and physical scale modes remain incomplete.
 - Discover installed Simulators and paired devices by stable ID.
-- Capture a PNG from a booted Simulator (verified on iPhone 17 Pro, iOS 26.4.1).
+- Capture a PNG from a booted Simulator through the CLI or native Save panel (verified on iPhone 17 Pro, iOS 26.4.1).
 - Export Simulator screenshots as PNG, JPEG, TIFF, BMP, or single-frame GIF. JPEG output was verified at 1206×2622; the other formats still need device checks.
 - Record a bounded MP4 from a booted Simulator; a two-second request produced a valid 1.58-second video track. Startup time is excluded from the recorded footage.
 - CLI adapters for Simulator boot, shutdown, appearance, location, app install/launch/terminate, media, push, privacy, status bar, and display enumeration. Most actions are built but still need integration verification.
 - Physical-device PNG screenshot through `devicectl`, verified on a paired iPhone. App install/launch and URL actions still need device checks.
 - Structured Simulator display enumeration with explicit display selection for multi-screen captures. Both integrated iPhone Duo screens were captured by the CLI; fold-state rendering remains incomplete.
-- Visible Simulator accessibility identifiers, screen-coordinate frames, press, type, and wait through Device Hub's macOS Accessibility bridge. Verified on the included iOS fixture app; text is omitted from CLI output unless `--include-text` is requested. This path needs Accessibility permission and a uniquely matched visible Simulator window. The current elements list also includes Device Hub controls; app-only tree scoping and highlighting are pending.
+- Visible Simulator accessibility identifiers, screen-coordinate frames, press, type, and wait through Device Hub's macOS Accessibility bridge. Verified on the included iOS fixture app; text is omitted from CLI output unless `--include-text` is requested. This path needs Accessibility permission and a uniquely matched visible Simulator window. The Xcode 27.2 screen-container guard excludes Device Hub controls; highlighting and broader app coverage are pending.
 - Read-only build statistics from Xcode build log manifests, available through `orbitsim builds` and a native Build Insights window. The app retains a bounded local SQLite history in WAL mode; CLI users can opt into that cache with `orbitsim builds --history`. Detailed build-step analysis is pending.
 
 ## Requirements
