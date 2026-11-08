@@ -352,7 +352,7 @@ struct OrbitSimCommand {
           orbitsim open-url --target <id> --url <url>
           orbitsim add-media --target <simulator-id> --file <media-file>
           orbitsim push --target <simulator-id> --bundle <bundle-id> --payload <json-file>
-          orbitsim privacy --target <simulator-id> --action grant|revoke|reset --service <service> --bundle <bundle-id>
+          orbitsim privacy --target <simulator-id> --action grant|revoke|reset --service all|calendar|contacts-limited|contacts|location|location-always|photos-add|photos|media-library|microphone|motion|reminders|siri --bundle <bundle-id>
           orbitsim displays --target <simulator-id> [--json]
           orbitsim boot|shutdown --target <simulator-id>
           orbitsim appearance --target <simulator-id> --style dark|light

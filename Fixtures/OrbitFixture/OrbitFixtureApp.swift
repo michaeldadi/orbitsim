@@ -1,3 +1,4 @@
+import CoreLocation
 import Observation
 import SwiftUI
 import UIKit
@@ -51,6 +52,8 @@ private struct FixtureView: View {
     @State private var lastLink = "none"
     @State private var pushState = FixturePushState.shared
     @State private var notificationStatus = "not requested"
+    @State private var locationManager = CLLocationManager()
+    @State private var locationStatus = "not read"
 
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
@@ -86,9 +89,29 @@ private struct FixtureView: View {
                 .accessibilityIdentifier("fixture.notification-status")
             Text("Push: \(pushState.count) · \(pushState.lastTitle)")
                 .accessibilityIdentifier("fixture.push")
+            HStack {
+                Button("Read location permission") { refreshLocationPermission() }
+                    .accessibilityIdentifier("fixture.location-read")
+                Button("Request location") { locationManager.requestWhenInUseAuthorization() }
+                    .accessibilityIdentifier("fixture.location-request")
+            }
+            Text("Location permission: \(locationStatus)")
+                .accessibilityIdentifier("fixture.location-status")
             Spacer()
         }
         .padding(30)
         .onOpenURL { lastLink = $0.absoluteString }
+        .onAppear { refreshLocationPermission() }
+    }
+
+    private func refreshLocationPermission() {
+        switch locationManager.authorizationStatus {
+        case .notDetermined: locationStatus = "not determined"
+        case .restricted: locationStatus = "restricted"
+        case .denied: locationStatus = "denied"
+        case .authorizedAlways: locationStatus = "always"
+        case .authorizedWhenInUse: locationStatus = "when in use"
+        @unknown default: locationStatus = "unknown"
+        }
     }
 }

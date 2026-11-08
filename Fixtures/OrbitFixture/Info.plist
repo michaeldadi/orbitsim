@@ -20,6 +20,8 @@
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>OrbitFixture checks Simulator location permission behavior.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

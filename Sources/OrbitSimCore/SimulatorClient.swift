@@ -377,8 +377,14 @@ public enum ScreenshotFormat: String, Sendable {
     }
 }
 
-public enum PrivacyService: String, Sendable {
-    case calendar, contacts, location, photos, microphone, motion, reminders, siri
+public enum PrivacyService: String, CaseIterable, Sendable, Identifiable {
+    case all, calendar, contacts, location, photos, microphone, motion, reminders, siri
+    case contactsLimited = "contacts-limited"
+    case locationAlways = "location-always"
+    case photosAdd = "photos-add"
+    case mediaLibrary = "media-library"
+
+    public var id: String { rawValue }
 }
 
 private struct SimulatorList: Decodable {

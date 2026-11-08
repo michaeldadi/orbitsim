@@ -39,7 +39,7 @@ Baseline: RocketSim 16.8.0 installed on macOS 27.2; public documentation reviewe
 | F27b | Status bar network and carrier | S | `simctl status_bar` | Set then clear all supported fields | verified (CLI set time, network, Wi-Fi and cellular modes/bars, carrier, battery state/level on iPhone 17 Pro; list showed each field; clear restored an empty override list) |
 | F28 | Light and dark appearance | S | `simctl ui` | Toggle then restore appearance | verified (CLI) |
 | F28b | Accessibility environment | S | `simctl ui` | Toggle and restore text size, contrast, VoiceOver | incomplete (CLI contrast and content-size changes read back and restored on iPhone 17 Pro; native app read both settings and restored contrast; native text-size picker and VoiceOver control pending) |
-| F29 | Privacy permissions | S | `simctl privacy` | Grant/revoke/reset each supported service on fixture | incomplete (subset adapter built) |
+| F29 | Privacy permissions | S | `simctl privacy` | Grant/revoke/reset each supported service on fixture | incomplete (all documented service names exposed in CLI and native app; CLI and native location grant/revoke/reset each changed OrbitFixture authorization to when-in-use/denied/not-determined. Other services and usage-description cases need live checks) |
 | F30 | Pasteboard, keychain, user defaults | S | `simctl` and debug bridge | Read/change/restorable state for fixture app | incomplete |
 | F31 | Shake and memory warning | S | proven Simulator control path | Trigger fixture handlers without UI focus ambiguity | incomplete |
 | F32 | Camera injection | S | AVFoundation plus Simulator input proof | Scan live QR in fixture app, multiple runtimes | incomplete |

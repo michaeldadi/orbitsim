@@ -282,6 +282,21 @@ final class TargetViewModel {
         }
     }
 
+    func setPrivacy(bundleID: String, action: PrivacyAction, service: PrivacyService) async {
+        guard let target = selectedTarget, target.kind == .simulator,
+              target.state == .booted else { return }
+        let verb: String
+        switch action {
+        case .grant: verb = "Granted"
+        case .revoke: verb = "Revoked"
+        case .reset: verb = "Reset"
+        }
+        await run("\(verb) \(service.rawValue) for \(bundleID)") {
+            try await registry.simulators.setPrivacy(target.id, action: action,
+                                                     service: service, bundleID: bundleID)
+        }
+    }
+
     @discardableResult
     private func run(_ success: String, operation: () async throws -> Void) async -> Bool {
         isBusy = true

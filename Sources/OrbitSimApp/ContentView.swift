@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var batteryText = ""
     @State private var pendingUninstall: UninstallRequest?
     @State private var selectedTextSize: SimulatorContentSize = .large
+    @State private var selectedPrivacyService: PrivacyService = .location
     @State private var showRecentBuilds = false
     @State private var recentBuilds: [BuildProduct] = []
     @State private var selectedBuildID: String?
@@ -267,6 +268,32 @@ struct ContentView: View {
                                 .font(.caption)
                                 .foregroundStyle(.orange)
                         }
+
+                        Divider()
+                        HStack {
+                            Picker("App Permission", selection: $selectedPrivacyService) {
+                                ForEach(PrivacyService.allCases.filter { $0 != .all }) { service in
+                                    Text(service.rawValue).tag(service)
+                                }
+                            }
+                            .frame(maxWidth: 280)
+                            Button("Grant") {
+                                Task { await model.setPrivacy(bundleID: bundleID, action: .grant,
+                                                               service: selectedPrivacyService) }
+                            }
+                            Button("Revoke") {
+                                Task { await model.setPrivacy(bundleID: bundleID, action: .revoke,
+                                                               service: selectedPrivacyService) }
+                            }
+                            Button("Reset") {
+                                Task { await model.setPrivacy(bundleID: bundleID, action: .reset,
+                                                               service: selectedPrivacyService) }
+                            }
+                            Spacer()
+                        }
+                        .disabled(model.isBusy || !canAct || bundleID.isEmpty)
+                        Text("Permission changes may restart the test app.")
+                            .font(.caption).foregroundStyle(.secondary)
 
                         HStack {
                             TextField("Latitude", text: $latitudeText).frame(width: 105)
