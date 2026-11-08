@@ -267,16 +267,23 @@ struct OrbitSimCommand {
         case "status-bar":
             let id = try required("--target", in: arguments)
             try await requireSimulator(id, registry: registry)
-            if arguments.contains("--clear") {
+            if arguments.contains("--list") {
+                print(try await registry.simulators.statusBarOverrides(id))
+            } else if arguments.contains("--clear") {
                 try await registry.simulators.clearStatusBar(id)
             } else {
-                let time = optional("--time", in: arguments)
-                let batteryText = optional("--battery", in: arguments)
-                guard batteryText == nil || Int(batteryText!) != nil else {
-                    throw OrbitSimError.invalidArgument("--battery must be an integer from 0 to 100")
-                }
-                try await registry.simulators.overrideStatusBar(id, time: time,
-                    batteryLevel: batteryText.flatMap(Int.init))
+                let settings = try StatusBarOverride(
+                    time: optional("--time", in: arguments),
+                    dataNetwork: optional("--network", in: arguments),
+                    wifiMode: optional("--wifi-mode", in: arguments),
+                    wifiBars: integer("--wifi-bars", in: arguments),
+                    cellularMode: optional("--cellular-mode", in: arguments),
+                    cellularBars: integer("--cellular-bars", in: arguments),
+                    operatorName: optional("--carrier", in: arguments),
+                    batteryState: optional("--battery-state", in: arguments),
+                    batteryLevel: integer("--battery", in: arguments)
+                )
+                try await registry.simulators.overrideStatusBar(id, settings: settings)
             }
         case "doctor":
             let targets = try await registry.allTargets()
@@ -308,6 +315,14 @@ struct OrbitSimCommand {
         guard let index = arguments.firstIndex(of: flag), arguments.indices.contains(index + 1),
               !arguments[index + 1].hasPrefix("--") else { return nil }
         return arguments[index + 1]
+    }
+
+    private static func integer(_ flag: String, in arguments: [String]) throws -> Int? {
+        guard let value = optional(flag, in: arguments) else { return nil }
+        guard let number = Int(value) else {
+            throw OrbitSimError.invalidArgument("\(flag) must be an integer")
+        }
+        return number
     }
 
     private static func requireSimulator(_ id: String, registry: TargetRegistry) async throws {
@@ -345,7 +360,8 @@ struct OrbitSimCommand {
           orbitsim text-size --target <simulator-id> [--size extra-small|small|medium|large|extra-large|extra-extra-large|extra-extra-extra-large|accessibility-medium|accessibility-large|accessibility-extra-large|accessibility-extra-extra-large|accessibility-extra-extra-extra-large]
           orbitsim location --target <id> --latitude <n> --longitude <n>
           orbitsim clear-location --target <id>
-          orbitsim status-bar --target <simulator-id> --time <value> [--battery <0-100>]
+          orbitsim status-bar --target <simulator-id> [--time <value>] [--network hide|wifi|3g|4g|lte|lte-a|lte+|5g|5g+|5g-uwb|5g-uc] [--wifi-mode searching|failed|active] [--wifi-bars <0-3>] [--cellular-mode notSupported|searching|failed|active] [--cellular-bars <0-4>] [--carrier <name>] [--battery-state charging|charged|discharging] [--battery <0-100>]
+          orbitsim status-bar --target <simulator-id> --list
           orbitsim status-bar --target <simulator-id> --clear
           orbitsim doctor
           orbitsim version

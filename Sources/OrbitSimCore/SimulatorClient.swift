@@ -158,15 +158,65 @@ public struct SimulatorClient: Sendable {
         _ = try await run(["status_bar", id, "clear"])
     }
 
+    public func statusBarOverrides(_ id: String) async throws -> String {
+        try await run(["status_bar", id, "list"]).stdout
+    }
+
     public func overrideStatusBar(_ id: String, time: String? = nil, batteryLevel: Int? = nil) async throws {
+        try await overrideStatusBar(id, settings: StatusBarOverride(time: time, batteryLevel: batteryLevel))
+    }
+
+    public func overrideStatusBar(_ id: String, settings: StatusBarOverride) async throws {
         var arguments = ["status_bar", id, "override"]
-        if let time {
+        if let time = settings.time {
             guard !time.isEmpty, time.count <= 40 else {
                 throw OrbitSimError.invalidArgument("Status bar time must be 1–40 characters")
             }
             arguments += ["--time", time]
         }
-        if let batteryLevel {
+        if let dataNetwork = settings.dataNetwork {
+            guard StatusBarOverride.dataNetworks.contains(dataNetwork) else {
+                throw OrbitSimError.invalidArgument("Unsupported data network type")
+            }
+            arguments += ["--dataNetwork", dataNetwork]
+        }
+        if let wifiMode = settings.wifiMode {
+            guard StatusBarOverride.radioModes.contains(wifiMode) else {
+                throw OrbitSimError.invalidArgument("Unsupported Wi-Fi mode")
+            }
+            arguments += ["--wifiMode", wifiMode]
+        }
+        if let wifiBars = settings.wifiBars {
+            guard (0...3).contains(wifiBars) else {
+                throw OrbitSimError.invalidArgument("Wi-Fi bars must be 0–3")
+            }
+            arguments += ["--wifiBars", String(wifiBars)]
+        }
+        if let cellularMode = settings.cellularMode {
+            guard StatusBarOverride.cellularModes.contains(cellularMode) else {
+                throw OrbitSimError.invalidArgument("Unsupported cellular mode")
+            }
+            arguments += ["--cellularMode", cellularMode]
+        }
+        if let cellularBars = settings.cellularBars {
+            guard (0...4).contains(cellularBars) else {
+                throw OrbitSimError.invalidArgument("Cellular bars must be 0–4")
+            }
+            arguments += ["--cellularBars", String(cellularBars)]
+        }
+        if let operatorName = settings.operatorName {
+            guard operatorName.count <= 40 else {
+                throw OrbitSimError.invalidArgument("Carrier name must be at most 40 characters")
+            }
+            arguments += ["--operatorName", operatorName]
+        }
+        if let batteryState = settings.batteryState {
+            guard StatusBarOverride.batteryStates.contains(batteryState) else {
+                throw OrbitSimError.invalidArgument("Unsupported battery state")
+            }
+            arguments += ["--batteryState", batteryState]
+        }
+        if let batteryLevel = settings.batteryLevel {
             guard (0...100).contains(batteryLevel) else {
                 throw OrbitSimError.invalidArgument("Battery level must be 0–100")
             }
@@ -236,6 +286,39 @@ public struct SimulatorClient: Sendable {
               segments.allSatisfy({ !$0.isEmpty && $0.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-") }) }) else {
             throw OrbitSimError.invalidArgument("Expected a bundle identifier such as com.example.App")
         }
+    }
+}
+
+public struct StatusBarOverride: Sendable {
+    public static let dataNetworks: Set<String> = ["hide", "wifi", "3g", "4g", "lte", "lte-a", "lte+", "5g", "5g+", "5g-uwb", "5g-uc"]
+    public static let radioModes: Set<String> = ["searching", "failed", "active"]
+    public static let cellularModes: Set<String> = ["notSupported", "searching", "failed", "active"]
+    public static let batteryStates: Set<String> = ["charging", "charged", "discharging"]
+
+    public let time: String?
+    public let dataNetwork: String?
+    public let wifiMode: String?
+    public let wifiBars: Int?
+    public let cellularMode: String?
+    public let cellularBars: Int?
+    public let operatorName: String?
+    public let batteryState: String?
+    public let batteryLevel: Int?
+
+    public init(time: String? = nil, dataNetwork: String? = nil,
+                wifiMode: String? = nil, wifiBars: Int? = nil,
+                cellularMode: String? = nil, cellularBars: Int? = nil,
+                operatorName: String? = nil, batteryState: String? = nil,
+                batteryLevel: Int? = nil) {
+        self.time = time
+        self.dataNetwork = dataNetwork
+        self.wifiMode = wifiMode
+        self.wifiBars = wifiBars
+        self.cellularMode = cellularMode
+        self.cellularBars = cellularBars
+        self.operatorName = operatorName
+        self.batteryState = batteryState
+        self.batteryLevel = batteryLevel
     }
 }
 

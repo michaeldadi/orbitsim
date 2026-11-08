@@ -36,7 +36,7 @@ Baseline: RocketSim 16.8.0 installed on macOS 27.2; public documentation reviewe
 | F26 | Fixed location | S | `simctl location` | Set valid coordinates then clear | verified (CLI) |
 | F26b | Routes and time zone | S/P | `simctl location`/device tools | Drive route and restore prior state | incomplete |
 | F27 | Status bar time and battery | S | `simctl status_bar` | Set then clear time and battery | verified (CLI) |
-| F27b | Status bar network and carrier | S | `simctl status_bar` | Set then clear all supported fields | incomplete |
+| F27b | Status bar network and carrier | S | `simctl status_bar` | Set then clear all supported fields | verified (CLI set time, network, Wi-Fi and cellular modes/bars, carrier, battery state/level on iPhone 17 Pro; list showed each field; clear restored an empty override list) |
 | F28 | Light and dark appearance | S | `simctl ui` | Toggle then restore appearance | verified (CLI) |
 | F28b | Accessibility environment | S | `simctl ui` | Toggle and restore text size, contrast, VoiceOver | incomplete (CLI contrast and content-size changes read back and restored on iPhone 17 Pro; native app read both settings and restored contrast; native text-size picker and VoiceOver control pending) |
 | F29 | Privacy permissions | S | `simctl privacy` | Grant/revoke/reset each supported service on fixture | incomplete (subset adapter built) |

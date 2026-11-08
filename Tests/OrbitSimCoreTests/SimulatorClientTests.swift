@@ -75,6 +75,25 @@ final class SimulatorClientTests: XCTestCase {
         }
     }
 
+    func testInvalidStatusBarValuesFailBeforeCallingSimctl() async {
+        let invalidSettings = [
+            StatusBarOverride(dataNetwork: "6g"),
+            StatusBarOverride(wifiBars: 4),
+            StatusBarOverride(cellularBars: 5),
+            StatusBarOverride(batteryState: "unknown"),
+        ]
+        for settings in invalidSettings {
+            do {
+                try await SimulatorClient().overrideStatusBar("unused", settings: settings)
+                XCTFail("Expected an invalid status bar value to fail")
+            } catch OrbitSimError.invalidArgument {
+                // Expected; a simctl failure would indicate validation did not run first.
+            } catch {
+                XCTFail("Unexpected error: \(error)")
+            }
+        }
+    }
+
     func testCommandRunnerTimesOut() async {
         do {
             _ = try await CommandRunner().run(
