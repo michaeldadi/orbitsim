@@ -32,7 +32,7 @@ Baseline: RocketSim 16.8.0 installed on macOS 27.2; public documentation reviewe
 | F22 | App install, launch, terminate, uninstall | S/P | `simctl`/`devicectl` | Lifecycle fixture app on both target types | incomplete (Simulator CLI and native terminate/uninstall ran on OrbitFixture; native uninstall showed bundle ID and target before removal; `simctl` confirmed the app container was gone; CLI reinstall and relaunch restored it. Physical-device lifecycle pending) |
 | F23 | Recent builds and relaunch | S/P | DerivedData index, lifecycle adapter | Select right app from two Xcode projects | incomplete |
 | F24 | Deep and Universal Links | S/P | `simctl openurl`/`devicectl` | Open fixture link with chooser and fallback | incomplete (Simulator custom URL verified after Open prompt; Universal Link and physical device pending) |
-| F25 | Simulated push notification | S | `simctl push` | Deliver valid payload; reject invalid payload | incomplete (adapter and invalid-payload test) |
+| F25 | Simulated push notification | S | `simctl push` | Deliver valid payload; reject invalid payload | verified (valid local payload reached the foreground OrbitFixture view as `Push: 1 · OrbitFixture`; malformed payload is rejected before invoking `simctl`) |
 | F26 | Fixed location | S | `simctl location` | Set valid coordinates then clear | verified (CLI) |
 | F26b | Routes and time zone | S/P | `simctl location`/device tools | Drive route and restore prior state | incomplete |
 | F27 | Status bar time and battery | S | `simctl status_bar` | Set then clear time and battery | verified (CLI) |
